@@ -1,7 +1,7 @@
 {
   "name": "next-deferred-tags",
-  "version": "0.1.0",
-  "description": "Load Google Tag Manager, GA4, Meta Pixel and LinkedIn Insight on the first interaction in Next.js. Events and page views are queued, nothing is lost, and the tags stay out of your PageSpeed score.",
+  "version": "0.2.0",
+  "description": "Load Google Tag Manager, GA4, Meta Pixel and LinkedIn Insight on the first interaction in Next.js, with cookie consent and Google Consent Mode v2 built in. Events and page views are queued, nothing is lost, and the tags stay out of your PageSpeed score.",
   "keywords": [
     "nextjs",
     "next.js",
@@ -16,11 +16,18 @@
     "core web vitals",
     "pagespeed",
     "lighthouse",
-    "total blocking time"
+    "total blocking time",
+    "cookie consent",
+    "consent mode",
+    "google consent mode v2",
+    "cookie banner",
+    "gdpr",
+    "dpdp",
+    "ai referrals"
   ],
   "license": "MIT",
   "author": "Codevibe Technology <hello@codevibe.in> (https://codevibe.in)",
-  "homepage": "https://github.com/codevibe-technology/next-deferred-tags#readme",
+  "homepage": "https://codevibe.in/tools/next-deferred-tags?utm_source=npm&utm_medium=package&utm_campaign=next-deferred-tags",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codevibe-technology/next-deferred-tags.git"
@@ -47,7 +54,9 @@
     "build": "rm -rf dist && tsc -p tsconfig.json",
     "test": "rm -rf .test-build && tsc -p tsconfig.test.json && node --test .test-build/test/*.test.js",
     "release": "node scripts/release.mjs",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build && npm test",
+    "prepack": "node scripts/readme-utm.mjs npm",
+    "postpack": "node scripts/readme-utm.mjs restore"
   },
   "peerDependencies": {
     "next": ">=13.4.0",
