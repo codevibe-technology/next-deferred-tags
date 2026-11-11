@@ -1,0 +1,63 @@
+{
+  "name": "next-deferred-tags",
+  "version": "0.1.0",
+  "description": "Load Google Tag Manager, GA4, Meta Pixel and LinkedIn Insight on the first interaction in Next.js. Events and page views are queued, nothing is lost, and the tags stay out of your PageSpeed score.",
+  "keywords": [
+    "nextjs",
+    "next.js",
+    "react",
+    "google tag manager",
+    "gtm",
+    "ga4",
+    "meta pixel",
+    "facebook pixel",
+    "linkedin insight tag",
+    "performance",
+    "core web vitals",
+    "pagespeed",
+    "lighthouse",
+    "total blocking time"
+  ],
+  "license": "MIT",
+  "author": "Codevibe Technology <hello@codevibe.in> (https://codevibe.in)",
+  "homepage": "https://github.com/codevibe-technology/next-deferred-tags#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codevibe-technology/next-deferred-tags.git"
+  },
+  "bugs": "https://github.com/codevibe-technology/next-deferred-tags/issues",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "test": "rm -rf .test-build && tsc -p tsconfig.test.json && node --test .test-build/test/*.test.js",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "peerDependencies": {
+    "next": ">=13.4.0",
+    "react": ">=18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^19.0.0",
+    "next": "^15.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.6.0"
+  }
+}

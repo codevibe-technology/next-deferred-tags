@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install
+      - run: npm run build
+      - run: npm test
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install && npm run build && npm pack
+      # Install the packed tarball (not a symlink) so the example gets a single copy of React.
+      - run: npm pkg delete dependencies.next-deferred-tags && npm install && npm install ../../next-deferred-tags-*.tgz
+        working-directory: examples/app-router
+      - run: npx next build
+        working-directory: examples/app-router
