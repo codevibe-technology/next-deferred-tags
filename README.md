@@ -59,7 +59,7 @@ Marketing tags are often the heaviest JavaScript on a Next.js marketing site, an
   <img src=".github/assets/how-it-works.png" alt="Diagram: the usual setup runs tags during page load; next-deferred-tags runs them after the visitor interacts" width="100%">
 </p>
 
-On [codevibe.in](https://codevibe.in), Tag Manager and the LinkedIn Insight Tag were about **480 KB of script and ~1.8 s of main-thread work** in Lighthouse's mobile run. Deferring them was one of the changes that took the site from **54 to 99 on mobile PageSpeed**. The full story, including the other fixes, is in our [speed case study](https://codevibe.in/case-studies/website-speed-optimization). This package is that component, generalised and tested.
+On [codevibe.in](https://codevibe.in?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=body), Tag Manager and the LinkedIn Insight Tag were about **480 KB of script and ~1.8 s of main-thread work** in Lighthouse's mobile run. Deferring them was one of the changes that took the site from **54 to 99 on mobile PageSpeed**. The full story, including the other fixes, is in our [speed case study](https://codevibe.in/case-studies/website-speed-optimization?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=case-study). This package is that component, generalised and tested.
 
 ## Features
 
@@ -221,12 +221,12 @@ npm run build
 
 ## License
 
-[MIT](LICENSE) © [Codevibe Technology](https://codevibe.in)
+[MIT](LICENSE) © [Codevibe Technology](https://codevibe.in?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=license)
 
 ---
 
 <p align="center">
-  <a href="https://codevibe.in">
+  <a href="https://codevibe.in?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=footer-logo">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset=".github/assets/codevibe-logo-light.png">
       <img src=".github/assets/codevibe-logo-dark.png" alt="Codevibe" height="28">
@@ -235,7 +235,7 @@ npm run build
 </p>
 
 <p align="center">
-  Built and maintained by <a href="https://codevibe.in"><b>Codevibe</b></a>, a software development agency in Gurugram, India.<br>
+  Built and maintained by <a href="https://codevibe.in?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=built-by"><b>Codevibe</b></a>, a software development agency in Gurugram, India.<br>
   We build fast web apps, mobile apps and AI products for startups.<br>
-  <a href="https://codevibe.in">Website</a> · <a href="https://codevibe.in/case-studies/website-speed-optimization">Speed case study</a> · <a href="mailto:hello@codevibe.in">hello@codevibe.in</a>
+  <a href="https://codevibe.in?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=footer-links">Website</a> · <a href="https://codevibe.in/case-studies/website-speed-optimization?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=footer-case-study">Speed case study</a> · <a href="mailto:hello@codevibe.in">hello@codevibe.in</a>
 </p>

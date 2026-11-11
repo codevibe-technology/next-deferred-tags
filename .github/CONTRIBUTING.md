@@ -1,6 +1,6 @@
 # Contributing to next-deferred-tags
 
-Thanks for helping. next-deferred-tags is a Next.js component that loads marketing tags after the first interaction, maintained by [Codevibe](https://codevibe.in).
+Thanks for helping. next-deferred-tags is a Next.js component that loads marketing tags after the first interaction, maintained by [Codevibe](https://codevibe.in?utm_source=github&utm_medium=repo&utm_campaign=next-deferred-tags&utm_content=contributing).
 
 ## Ground rules
 
