@@ -22,6 +22,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Contributing guide documents the commit and changelog rules. Pull request titles and changelog entries are checked in CI.
 - Links to codevibe.in in the README, contributing guide and issue template carry UTM tags. The README on GitHub says `utm_source=github`; the README published to npm says `utm_source=npm` (switched by the new `prepack`/`postpack` scripts), so visits from each can be told apart.
 - The npm homepage link points to the package page on codevibe.in, and the README links it and the write-up.
+- The README opens with a 30-second preview (animated GIF) of the launch video, linking to the full 76-second video with sound on codevibe.in.
 
 ### Fixed
 
