@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- Cookie consent: the `consent` prop turns on Google Consent Mode v2 (every signal denied until the visitor agrees, set before Tag Manager or gtag.js loads, updated on every choice), holds the Meta Pixel, the LinkedIn Insight Tag and extra scripts until marketing consent, and pushes a `consent_update` dataLayer event for Tag Manager. `consent` accepts `"stored"`, a `{ analytics, marketing }` choice from any consent tool, or `null`.
+- `consentMode="basic"` keeps Google tags out of the page until the visitor accepts; the default `"advanced"` loads them with signals denied.
+- `<ConsentBanner>`: an accessible banner with equal-weight "Reject all" and "Accept all", per-category switches, light and dark themes, custom text, `unstyled` mode, and `onChoice` for keeping a consent log. `openConsentSettings()` reopens it.
+- `setConsent()`, `getConsent()` and the framework-free `initConsent`, `updateConsent`, `consentModeSignals`, `readConsent`, `writeConsent`. The choice is stored in a first-party `ndt_consent` cookie for 12 months, with a random id that survives changes and a version that can be bumped to ask again.
+- `scripts` entries accept `consent: 'analytics' | 'marketing' | 'necessary'`.
+- AI referrals: visits sent by ChatGPT, Perplexity, Claude, Gemini, Copilot and other assistants push an `ai_referral` dataLayer event once per visit (`aiReferrals` prop, on by default). `detectAiReferral()` is exported.
 - Automated releases: merging a `chore(release)` pull request publishes to npm with provenance and creates the GitHub release from these notes.
 
 ### Changed
