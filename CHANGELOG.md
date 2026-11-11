@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## Unreleased
 
+## [0.2.0] - 2026-11-12
+
 ### Added
 
 - Cookie consent: the `consent` prop turns on Google Consent Mode v2 (every signal denied until the visitor agrees, set before Tag Manager or gtag.js loads, updated on every choice), holds the Meta Pixel, the LinkedIn Insight Tag and extra scripts until marketing consent, and pushes a `consent_update` dataLayer event for Tag Manager. `consent` accepts `"stored"`, a `{ analytics, marketing }` choice from any consent tool, or `null`.

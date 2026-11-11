@@ -1,6 +1,6 @@
 {
   "name": "next-deferred-tags",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Load Google Tag Manager, GA4, Meta Pixel and LinkedIn Insight on the first interaction in Next.js, with cookie consent and Google Consent Mode v2 built in. Events and page views are queued, nothing is lost, and the tags stay out of your PageSpeed score.",
   "keywords": [
     "nextjs",
