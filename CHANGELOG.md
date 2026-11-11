@@ -21,6 +21,11 @@ All notable changes to this project are documented here. The format follows [Kee
 - CI runs on `actions/checkout` and `actions/setup-node` v7.
 - Contributing guide documents the commit and changelog rules. Pull request titles and changelog entries are checked in CI.
 - Links to codevibe.in in the README, contributing guide and issue template carry UTM tags. The README on GitHub says `utm_source=github`; the README published to npm says `utm_source=npm` (switched by the new `prepack`/`postpack` scripts), so visits from each can be told apart.
+- The npm homepage link points to the package page on codevibe.in, and the README links it and the write-up.
+
+### Fixed
+
+- The README and the how-it-works diagram gave the cost of the tags on codevibe.in as about 480 KB and ~1.8 s of main-thread work. They now match the measured figures in the speed case study: 470 KiB of script and 4.2 s of the 4.7 s Total Blocking Time.
 
 ## [0.1.0] - 2026-11-11
 
