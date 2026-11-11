@@ -16,6 +16,11 @@
 </p>
 
 <p align="center">
+  <a href="https://codevibe.in/tools/next-deferred-tags?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=video#video"><img src=".github/assets/demo.gif" alt="30-second preview: on codevibe.in Tag Manager caused 4.2 of 4.7 seconds of blocking time; next-deferred-tags loads tags on the first interaction and third-party blocking drops from 4,335 ms to 0" width="100%"></a><br>
+  <sub>▶ <a href="https://codevibe.in/tools/next-deferred-tags?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=video#video">Watch the full 76-second video with sound</a></sub>
+</p>
+
+<p align="center">
   <a href="#quick-start">Quick start</a> ·
   <a href="#why-this-exists">Why</a> ·
   <a href="#features">Features</a> ·
