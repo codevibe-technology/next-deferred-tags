@@ -6,6 +6,7 @@ export {
   getConsent,
   hotjarEvent,
   loadTagsNow,
+  newEventId,
   openConsentSettings,
   pushEvent,
   setConsent,

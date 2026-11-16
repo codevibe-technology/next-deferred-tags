@@ -18,6 +18,13 @@ All notable changes to this project are documented here. The format follows [Kee
 - `CONSENT_TEXT_HI`: Hindi texts for the banner (`text={CONSENT_TEXT_HI}`).
 - Consent regions: ask only where the law requires it. `<DeferredTags consent>` and `<ConsentBanner>` take a `country` (from your host's header) or read the `ndt_country` cookie your middleware sets. In a country outside `consentRegions` (default: EU/EEA, UK, Switzerland, India), tags run as if accepted and the banner does not open by itself; the visitor can still change it from a "Cookie settings" link. When the country is unknown, consent is asked. Helpers: `consentRequired()`, `countryFromHeaders()` (Vercel, Cloudflare, CloudFront and others), `readCountry()`, `CONSENT_REGIONS`.
 - `next-deferred-tags/adapters`: follow another consent tool instead of `<ConsentBanner>`. `<ConsentBridge source="cookiebot" | "onetrust" | "tcf" />`, or `connectCookiebot()`, `connectOneTrust()` (custom category ids supported) and `connectTcf()` for any IAB TCF v2 tool, including Google's own consent banner. The choice is passed to `setConsent()`, so `<DeferredTags consent="stored">` follows it.
+- `next-deferred-tags/server`, for Route Handlers, Server Actions and API routes (Node and Edge, no dependencies):
+  - `sendMetaEvent()`: Meta Conversions API. Email and phone are hashed (SHA-256) before they leave the server, the IP, browser and `_fbp` / `_fbc` cookies are added, and the `eventId` you also pass to the browser pixel makes Meta count the event once. Sent only with marketing consent.
+  - `sendGa4Event()`: GA4 Measurement Protocol, joined to the visitor's session through the `_ga` cookie. Sent only with analytics consent. GA4 does not de-duplicate, so use it for events the browser did not send.
+  - `createConsentLogHandler()`: a Route Handler that checks each `<ConsentBanner onChoice>` record and passes it to your own `save` function. It stores no IP address.
+  - `consentFromRequest()`, `gaClientId()` and `requestCookie()` helpers.
+  - Ids and secrets come from `META_PIXEL_ID`, `META_CAPI_TOKEN`, `GA4_MEASUREMENT_ID` and `GA4_API_SECRET`, or from the call. They are never sent to the browser.
+- `trackMetaEvent(name, params, { eventId })` and `newEventId()`, to send the same event from the browser and the server.
 - `<ConsentBanner>` shows a small "Powered by Codevibe" link, with the Codevibe mark, at the bottom of its settings view (the one with the category switches), never in the first view. It links to the next-deferred-tags page on codevibe.in and opens in a new tab. On by default; `poweredBy={false}` removes it completely, and `text.poweredBy` translates the words before "Codevibe". The link carries the class `ndt-powered-by` for `unstyled` banners.
 
 ### Changed

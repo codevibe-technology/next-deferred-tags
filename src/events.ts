@@ -34,11 +34,30 @@ export function pushEvent(event: string, params: Record<string, unknown> = {}): 
  * trackMetaEvent('Lead', { content_name: 'contact' });
  * ```
  */
-export function trackMetaEvent(name: string, params?: Record<string, unknown>): void {
+export function trackMetaEvent(name: string, params?: Record<string, unknown>, options?: { eventId?: string }): void {
   const w = win();
   if (!w?.fbq) return;
-  if (params) w.fbq('track', name, params);
+  if (options?.eventId) w.fbq('track', name, params ?? {}, { eventID: options.eventId });
+  else if (params) w.fbq('track', name, params);
   else w.fbq('track', name);
+}
+
+/**
+ * A random id to send with the same event from the browser and from your server
+ * (`sendMetaEvent` in `next-deferred-tags/server`), so Meta counts it once.
+ *
+ * ```ts
+ * const eventId = newEventId();
+ * trackMetaEvent('Lead', { content_name: 'contact' }, { eventId });
+ * await fetch('/api/contact', { method: 'POST', body: JSON.stringify({ ...form, eventId }) });
+ * ```
+ */
+export function newEventId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  }
 }
 
 /**
