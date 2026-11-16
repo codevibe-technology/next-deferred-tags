@@ -21,25 +21,68 @@ export interface ConsentBannerText {
   alwaysOn: string;
   /** Words before "Codevibe" in the settings view credit line. */
   poweredBy: string;
+  /** Label before the list of tools in each category, e.g. "Used by". */
+  usedBy: string;
 }
 
 export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
-  title: 'Your privacy choices',
-  body: 'We use cookies to understand how this site is used and to measure our ads. Necessary cookies keep the site working and are always on. You can change your choice at any time.',
+  title: 'Help us make this site better',
+  body: 'Some cookies keep this site working. With your OK, we also use cookies to see which pages help people and which confuse them, and to show you ads that fit what you were looking at instead of random ones. You choose, and you can change it any time.',
   policy: 'Privacy policy',
   acceptAll: 'Accept all',
   rejectAll: 'Reject all',
   choose: 'Choose',
   save: 'Save choices',
-  necessary: 'Necessary',
-  necessaryDescription: 'Remembers this choice and keeps the site secure. Always on.',
-  analytics: 'Analytics',
-  analyticsDescription: 'Which pages are visited and how people find the site.',
-  marketing: 'Marketing',
-  marketingDescription: 'Whether ads lead to enquiries, and showing ads to past visitors.',
-  alwaysOn: 'On',
+  necessary: 'Essential',
+  necessaryDescription: 'Keeps the site secure and remembers this choice.',
+  analytics: 'Site improvement',
+  analyticsDescription: 'Counts visits and shows which pages people use and where they get stuck, so we can fix what is confusing and keep the site fast.',
+  marketing: 'Relevant ads',
+  marketingDescription: 'Shows you ads that fit what you looked at here instead of random ones, and tells us which ads brought you here, so we stop paying for ads nobody wants.',
+  alwaysOn: 'Always on',
   poweredBy: 'Powered by',
+  usedBy: 'Used by',
 };
+
+/** Hindi texts. Pass as `text={CONSENT_TEXT_HI}`. */
+export const CONSENT_TEXT_HI: ConsentBannerText = {
+  title: 'इस साइट को बेहतर बनाने में हमारी मदद करें',
+  body: 'कुछ कुकीज़ इस साइट को चलाने के लिए ज़रूरी हैं। आपकी अनुमति से हम कुकीज़ का इस्तेमाल यह समझने के लिए भी करते हैं कि कौन से पेज काम के हैं और कहाँ लोग अटकते हैं, और आपको वही विज्ञापन दिखाने के लिए जो आपकी पसंद से मेल खाते हैं। फ़ैसला आपका है, और आप इसे कभी भी बदल सकते हैं।',
+  policy: 'गोपनीयता नीति',
+  acceptAll: 'सभी स्वीकार करें',
+  rejectAll: 'सभी अस्वीकार करें',
+  choose: 'चुनें',
+  save: 'चुनाव सेव करें',
+  necessary: 'ज़रूरी',
+  necessaryDescription: 'साइट को सुरक्षित रखती हैं और आपका यह चुनाव याद रखती हैं।',
+  analytics: 'साइट सुधार',
+  analyticsDescription: 'विज़िट गिनती हैं और दिखाती हैं कि लोग कौन से पेज इस्तेमाल करते हैं और कहाँ अटकते हैं, ताकि हम उलझन वाली चीज़ें ठीक कर सकें और साइट तेज़ रख सकें।',
+  marketing: 'आपके काम के विज्ञापन',
+  marketingDescription: 'बेतरतीब विज्ञापनों की जगह वे विज्ञापन दिखाती हैं जो आपकी पसंद से मेल खाते हैं, और बताती हैं कि आप किस विज्ञापन से यहाँ आए।',
+  alwaysOn: 'हमेशा चालू',
+  poweredBy: 'Powered by',
+  usedBy: 'इस्तेमाल करने वाले',
+};
+
+/** Which configured tools each category covers, read from <DeferredTags>, for the settings view. */
+function toolsByCategory(): Record<'analytics' | 'marketing', string[]> {
+  const out = { analytics: [] as string[], marketing: [] as string[] };
+  if (typeof window === 'undefined') return out;
+  const c = (window as unknown as { __nextDeferredTags?: { config?: Record<string, unknown> } }).__nextDeferredTags?.config;
+  if (!c) return out;
+  if (c.gtm) {
+    out.analytics.push('Google');
+    out.marketing.push('Google');
+  }
+  if (c.ga4 && !c.gtm) out.analytics.push('Google Analytics');
+  if (c.clarity) out.analytics.push('Microsoft Clarity');
+  if (c.hotjar) out.analytics.push('Hotjar');
+  if (c.metaPixel) out.marketing.push('Meta');
+  if (c.linkedin) out.marketing.push('LinkedIn');
+  if (c.tiktok) out.marketing.push('TikTok');
+  if (c.uet) out.marketing.push('Microsoft Advertising');
+  return out;
+}
 
 /** Where the settings view credit links to. */
 export const POWERED_BY_URL =
@@ -63,6 +106,11 @@ export interface ConsentBannerProps {
   theme?: 'dark' | 'light';
   /** `'bottom-left'` (default), `'bottom-right'` or `'bottom'` (full width). */
   position?: 'bottom-left' | 'bottom-right' | 'bottom';
+  /**
+   * In the settings view, name the tools each category turns on (read from
+   * `<DeferredTags>`, e.g. "Used by: Google Analytics, Microsoft Clarity"). Default `true`.
+   */
+  showTools?: boolean;
   /** Drop the built-in styles and style the `ndt-consent*` class names yourself. */
   unstyled?: boolean;
   /**
@@ -99,6 +147,7 @@ export function ConsentBanner({
   position = 'bottom-left',
   unstyled = false,
   poweredBy = true,
+  showTools = true,
   className,
 }: ConsentBannerProps) {
   const t = { ...DEFAULT_CONSENT_TEXT, ...text };
@@ -183,13 +232,20 @@ export function ConsentBanner({
               <strong style={st({ display: 'block' })}>{t.necessary}</strong>
               <span style={st({ color: 'var(--ndt-muted)', fontSize: 13 })}>{t.necessaryDescription}</span>
             </span>
-            <span style={st({ color: 'var(--ndt-muted)', fontSize: 12 })}>{t.alwaysOn}</span>
+            <span style={st({ flex: 'none', whiteSpace: 'nowrap', color: 'var(--ndt-muted)', fontSize: 12 })}>{t.alwaysOn}</span>
           </li>
-          {categories.map((k) => (
+          {categories.map((k) => {
+            const tools = showTools ? toolsByCategory()[k] : [];
+            return (
             <li key={k} className="ndt-consent-row" style={st({ display: 'flex', justifyContent: 'space-between', gap: 16 })}>
               <span>
                 <strong style={st({ display: 'block' })}>{k === 'analytics' ? t.analytics : t.marketing}</strong>
-                <span style={st({ color: 'var(--ndt-muted)', fontSize: 13 })}>{k === 'analytics' ? t.analyticsDescription : t.marketingDescription}</span>
+                <span style={st({ display: 'block', color: 'var(--ndt-muted)', fontSize: 13 })}>{k === 'analytics' ? t.analyticsDescription : t.marketingDescription}</span>
+                {tools.length > 0 && (
+                  <span className="ndt-consent-tools" style={st({ display: 'block', color: 'var(--ndt-muted)', fontSize: 12, marginTop: 2, opacity: 0.85 })}>
+                    {t.usedBy}: {tools.join(', ')}
+                  </span>
+                )}
               </span>
               <button
                 type="button"
@@ -225,7 +281,8 @@ export function ConsentBanner({
                 />
               </button>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
       <div className="ndt-consent-actions" style={st({ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' })}>

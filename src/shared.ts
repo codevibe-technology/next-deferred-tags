@@ -1,5 +1,5 @@
 // Everything except the router-specific <DeferredTags>, shared by both entry points.
-export { ConsentBanner, DEFAULT_CONSENT_TEXT, POWERED_BY_URL } from './ConsentBanner.js';
+export { ConsentBanner, CONSENT_TEXT_HI, DEFAULT_CONSENT_TEXT, POWERED_BY_URL } from './ConsentBanner.js';
 export type { ConsentBannerProps, ConsentBannerText } from './ConsentBanner.js';
 export {
   clarityTag,

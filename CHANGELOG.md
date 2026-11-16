@@ -14,10 +14,13 @@ All notable changes to this project are documented here. The format follows [Kee
   - `tiktok`: TikTok Pixel. Loads after marketing consent, uses the pixel's `holdConsent` / `grantConsent` / `revokeConsent`, and records a page view per navigation only while marketing is allowed.
   - `hotjar`: Hotjar. It has no consent API, so it loads only after analytics consent.
 - `trackTikTokEvent()`, `trackUetEvent()`, `clarityTag()` and `hotjarEvent()` helpers. Like `trackMetaEvent()`, they queue until the script loads.
+- `<ConsentBanner>` names the tools behind each category in its settings view ("Used by: Google, Microsoft Clarity, Hotjar"), read from the `<DeferredTags>` props. `showTools={false}` hides the line. New text key `usedBy`.
+- `CONSENT_TEXT_HI`: Hindi texts for the banner (`text={CONSENT_TEXT_HI}`).
 - `<ConsentBanner>` shows a small "Powered by Codevibe" link at the bottom of its settings view (the one with the category switches), never in the first view. It links to the next-deferred-tags page on codevibe.in and opens in a new tab. On by default; `poweredBy={false}` removes it completely, and `text.poweredBy` translates the words before "Codevibe". The link carries the class `ndt-powered-by` for `unstyled` banners.
 
 ### Changed
 
+- Clearer default banner texts that say what each choice does for the visitor: "Help us make this site better", "Essential", "Site improvement" (find where people get stuck, keep the site fast) and "Relevant ads" (ads that fit what they looked at, instead of random ones). "Reject all" and "Accept all" keep equal weight. Sites that pass their own `text` are not affected.
 - Route tracking is now a small per-router piece on top of a shared core, so the App Router and Pages Router builds load tags, queue events and handle consent the same way. The App Router import is unchanged.
 
 ## [0.2.0] - 2026-11-12
