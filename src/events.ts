@@ -145,3 +145,19 @@ export function getConsent(opts: { version?: string } = {}): StoredConsent | nul
 export function openConsentSettings(): void {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(OPEN_SETTINGS_EVENT));
 }
+
+/**
+ * The page the visitor landed on, with its ad click ids and UTM tags (first touch in this
+ * tab), or null. Send it with a form so leads carry their source.
+ */
+export function getLanding(): { url: string; params: Record<string, string>; ts: number } | null {
+  const w = win();
+  const s = w?.__nextDeferredTags?.landing;
+  if (s) return s;
+  try {
+    const raw = sessionStorage.getItem('ndt_landing');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}

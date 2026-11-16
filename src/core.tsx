@@ -3,8 +3,11 @@
 import { useEffect, useRef, type ComponentType } from 'react';
 import { CONSENT_EVENT, detectAiReferral, readConsent, type ConsentChoice, type StoredConsent } from './consent.js';
 import { CONSENT_REGIONS, consentRequired, readCountry } from './region.js';
+import { captureLanding } from './landing.js';
+import { WebVitals } from './vitals.js';
 import { DEFAULT_DELAY_MS, DEFAULT_TRIGGERS, scheduleOnInteraction } from './schedule.js';
 import {
+  configureRuntime,
   getState,
   initConsent,
   installStubs,
@@ -70,6 +73,21 @@ export interface DeferredTagsProps extends TagConfig {
   /** Countries where consent is asked. Default: EU/EEA, UK, Switzerland, India. `'all'` asks everyone. */
   consentRegions?: readonly string[] | 'all';
   /**
+   * Log to the console when tags are scheduled and loaded, which trigger fired, each
+   * script's load time and every page view. Default false.
+   */
+  debug?: boolean;
+  /** Called when a tag script fails to load, e.g. blocked by an ad blocker. */
+  onBlocked?: (tag: string, src: string) => void;
+  /**
+   * If the visitor leaves before the tags load, send the queued dataLayer events (not page
+   * views) to this URL with `navigator.sendBeacon`, e.g. `'/api/events'`. Handle them with
+   * `createFlushHandler` from `next-deferred-tags/server`. Respects analytics consent.
+   */
+  flushTo?: string;
+  /** Push Core Web Vitals (LCP, INP, CLS, FCP, TTFB) to the dataLayer as `web_vitals` events. Default false. */
+  webVitals?: boolean;
+  /**
    * Push `{ event: 'ai_referral', ai_assistant, ai_source }` once per visit when the
    * visitor came from ChatGPT, Perplexity, Claude, Gemini, Copilot and others. Default true.
    */
@@ -104,10 +122,33 @@ interface Prep {
   consentVersion: string;
   country?: string;
   consentRegions: readonly string[] | 'all';
+  debug?: boolean;
+  onBlocked?: (tag: string, src: string) => void;
 }
+
+function sessionStore() {
+  try {
+    return window.sessionStorage;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Opened by Google Tag Assistant (GTM Preview): load the tags at once so Preview can connect. */
+export function isTagPreview(url: string, referrer: string): boolean {
+  try {
+    if (new URL(url).searchParams.has('gtm_debug')) return true;
+  } catch {
+    // not a URL
+  }
+  return /^https:\/\/tagassistant\.google\.com\//.test(referrer);
+}
+
+const FLUSH_SKIP = /^(gtm\.|consent_update$|web_vitals$)/;
 
 /** Consent defaults first, then the vendor queues. Safe to call from every effect. */
 function prepare(w: TagWindow, p: Prep) {
+  configureRuntime(w, { debug: p.debug, onBlocked: p.onBlocked, landing: captureLanding(window.location.href, sessionStore()) });
   const c = resolveConsent(p.consent, p.consentVersion, p.country, p.consentRegions);
   if (c !== undefined) initConsent(w, c, p.consentMode);
   installStubs(w, p.config);
@@ -181,9 +222,19 @@ export function DeferredTagsCore({
   country,
   consentRegions = CONSENT_REGIONS,
   aiReferrals = true,
+  debug = false,
+  onBlocked,
+  flushTo,
+  webVitals = false,
+  gtmAuth,
+  gtmPreview,
+  gtmScriptUrl,
+  gtagScriptUrl,
+  urlPassthrough,
 }: DeferredTagsProps & { RouteTracker: ComponentType<RouteTrackerProps> }) {
-  const config: TagConfig = { gtm, ga4, metaPixel, linkedin, clarity, uet, tiktok, hotjar, scripts, nonce };
-  const prep: Prep = { config, consent, consentMode, consentVersion, country, consentRegions };
+  const config: TagConfig = { gtm, ga4, metaPixel, linkedin, clarity, uet, tiktok, hotjar, scripts, nonce, gtmAuth, gtmPreview, gtmScriptUrl, gtagScriptUrl, urlPassthrough };
+  const prep: Prep = { config, consent, consentMode, consentVersion, country, consentRegions, debug, onBlocked };
+  const idKey = JSON.stringify([gtm, ga4, metaPixel, linkedin, clarity, uet, tiktok, hotjar, gtmAuth, gtmPreview, gtmScriptUrl, gtagScriptUrl]);
   const onLoadRef = useRef(onLoad);
   onLoadRef.current = onLoad;
   const triggerKey = triggers.join(',');
@@ -212,19 +263,50 @@ export function DeferredTagsCore({
     const w = asWindow();
     prepare(w, prep);
     if (!enabled || getState(w).loaded) return;
+    const load = (reason: string) => {
+      if (debug) console.info('[next-deferred-tags]', `loading tags: ${reason}`);
+      if (loadTags(w, asDoc(), config)) onLoadRef.current?.(reason);
+    };
+    if (isTagPreview(window.location.href, document.referrer)) {
+      load('Tag Assistant preview');
+      return;
+    }
+    if (debug) console.info('[next-deferred-tags]', `waiting for ${triggers.join(', ')}${delay === false ? '' : ` or ${delay} ms after load`}`);
     const scheduled = scheduleOnInteraction({
       triggers,
       delay,
       target: window,
       doc: document,
-      run: (reason) => {
-        if (loadTags(w, asDoc(), config)) onLoadRef.current?.(reason);
-      },
+      run: load,
     });
     return scheduled.cancel;
     // The ids, triggers and scripts are compared by value through the keys below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gtm, ga4, metaPixel, linkedin, clarity, uet, tiktok, hotjar, nonce, sKey, triggerKey, delay, enabled]);
+  }, [idKey, nonce, sKey, triggerKey, delay, enabled]);
+
+  // Leaving before the tags loaded: send the queued events to the site's own endpoint.
+  useEffect(() => {
+    if (!flushTo) return;
+    const w = asWindow();
+    let sent = 0;
+    const flush = () => {
+      const state = getState(w);
+      if (state.loaded || typeof navigator === 'undefined' || !navigator.sendBeacon) return;
+      if (state.consent !== undefined && !state.consent?.analytics) return;
+      const queue = (w.dataLayer ?? []).slice(sent);
+      sent = w.dataLayer?.length ?? 0;
+      const events = queue.filter(
+        (e): e is Record<string, unknown> =>
+          !!e && typeof e === 'object' && !Array.isArray(e) && typeof (e as { event?: unknown }).event === 'string' && (e as { event: string }).event !== pageViewEvent && !FLUSH_SKIP.test((e as { event: string }).event),
+      );
+      if (!events.length) return;
+      const body = JSON.stringify({ events: events.slice(0, 50), page: window.location.href, landing: state.landing ?? undefined });
+      navigator.sendBeacon(flushTo, new Blob([body], { type: 'application/json' }));
+      if (debug) console.info('[next-deferred-tags]', `sent ${events.length} queued event(s) to ${flushTo}`);
+    };
+    window.addEventListener('pagehide', flush);
+    return () => window.removeEventListener('pagehide', flush);
+  }, [flushTo, pageViewEvent, debug]);
 
   // Without page-view tracking the AI-referral event still needs a place to run.
   useEffect(() => {
@@ -232,6 +314,10 @@ export function DeferredTagsCore({
   }, [trackPageViews, aiReferrals]);
 
   const onRoute = usePageView(prep, pageViewEvent, aiReferrals);
-  if (!trackPageViews) return null;
-  return <RouteTracker onRoute={onRoute} />;
+  return (
+    <>
+      {trackPageViews && <RouteTracker onRoute={onRoute} />}
+      {webVitals && <WebVitals />}
+    </>
+  );
 }

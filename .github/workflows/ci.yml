@@ -17,6 +17,7 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm test
+      - run: npm run size
   example:
     runs-on: ubuntu-latest
     steps:
@@ -30,6 +31,10 @@ jobs:
         working-directory: examples/app-router
       - run: npx next build
         working-directory: examples/app-router
+      - run: npm pkg delete dependencies.next-deferred-tags && npm install && npm install ../../next-deferred-tags-*.tgz
+        working-directory: examples/pages-router
+      - run: npx next build
+        working-directory: examples/pages-router
   pr-title:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

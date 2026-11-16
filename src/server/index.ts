@@ -195,6 +195,51 @@ async function post(url: string, body: unknown): Promise<SendResult> {
   }
 }
 
+/** Events sent by `<DeferredTags flushTo>` when a visitor left before the tags loaded. */
+export interface FlushedEvents {
+  events: Array<Record<string, unknown> & { event: string }>;
+  /** The page the visitor left from. */
+  page?: string;
+  /** Landing page with its click ids and UTM tags, if any. */
+  landing?: { url: string; params: Record<string, string>; ts: number };
+}
+
+/**
+ * A Route Handler for `<DeferredTags flushTo="/api/events">`. Checks the beacon body and
+ * passes the events to your `handle` function, where you forward the ones that matter,
+ * for example with `sendGa4Event` or `sendMetaEvent`. Returns 204.
+ *
+ * ```ts
+ * // app/api/events/route.ts
+ * export const POST = createFlushHandler({
+ *   handle: async ({ events }, req) => {
+ *     for (const e of events) if (e.event === 'generate_lead') await sendGa4Event(req, { name: 'generate_lead' });
+ *   },
+ * });
+ * ```
+ */
+export function createFlushHandler(opts: { handle: (data: FlushedEvents, req: Request) => unknown | Promise<unknown> }) {
+  return async function POST(req: Request): Promise<Response> {
+    let input: unknown;
+    try {
+      const text = await req.text();
+      if (text.length > 16384) return new Response('Too large', { status: 413 });
+      input = JSON.parse(text);
+    } catch {
+      return new Response('Bad JSON', { status: 400 });
+    }
+    const d = input as Partial<FlushedEvents> | null;
+    if (!d || !Array.isArray(d.events)) return new Response('Bad body', { status: 400 });
+    const events = d.events.filter((e): e is FlushedEvents['events'][number] => !!e && typeof e === 'object' && typeof (e as { event?: unknown }).event === 'string').slice(0, 50);
+    try {
+      await opts.handle({ events, page: typeof d.page === 'string' ? d.page : undefined, landing: d.landing }, req);
+    } catch (err) {
+      console.error('next-deferred-tags: handling flushed events failed', err);
+    }
+    return new Response(null, { status: 204 });
+  };
+}
+
 /** One consent choice as received by the consent log handler. */
 export interface ConsentRecord extends ConsentChoice {
   /** Random id from the visitor's cookie, kept across their changes. */

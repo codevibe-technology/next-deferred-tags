@@ -68,7 +68,8 @@
     "release": "node scripts/release.mjs",
     "prepublishOnly": "npm run build && npm test",
     "prepack": "node scripts/readme-utm.mjs npm",
-    "postpack": "node scripts/readme-utm.mjs restore"
+    "postpack": "node scripts/readme-utm.mjs restore",
+    "size": "node scripts/size.mjs"
   },
   "peerDependencies": {
     "next": ">=13.4.0",
@@ -77,6 +78,7 @@
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/react": "^19.0.0",
+    "esbuild": "^0.25.12",
     "next": "^15.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

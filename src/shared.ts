@@ -4,6 +4,7 @@ export type { ConsentBannerProps, ConsentBannerText } from './ConsentBanner.js';
 export {
   clarityTag,
   getConsent,
+  getLanding,
   hotjarEvent,
   loadTagsNow,
   newEventId,
@@ -22,3 +23,7 @@ export type { ScheduleOptions, Scheduled } from './schedule.js';
 export { initConsent, installStubs, loadTags, trackPageView, updateConsent } from './tags.js';
 export type { ConsentMode, ScriptSpec, TagConfig } from './tags.js';
 export { CONSENT_REGIONS, COUNTRY_COOKIE, COUNTRY_HEADERS, consentRequired, countryFromHeaders, readCountry } from './region.js';
+export { ConsentGate } from './ConsentGate.js';
+export type { ConsentGateProps } from './ConsentGate.js';
+export { attributionParams, CLICK_IDS, UTM_KEYS } from './landing.js';
+export type { Landing } from './landing.js';

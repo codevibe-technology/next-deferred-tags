@@ -25,6 +25,17 @@ All notable changes to this project are documented here. The format follows [Kee
   - `consentFromRequest()`, `gaClientId()` and `requestCookie()` helpers.
   - Ids and secrets come from `META_PIXEL_ID`, `META_CAPI_TOKEN`, `GA4_MEASUREMENT_ID` and `GA4_API_SECRET`, or from the call. They are never sent to the browser.
 - `trackMetaEvent(name, params, { eventId })` and `newEventId()`, to send the same event from the browser and the server.
+- Ad click ids survive the delay: `gclid`, `gbraid`, `wbraid`, `dclid`, `fbclid`, `ttclid`, `msclkid`, `li_fat_id`, `twclid` and the UTM tags are read from the landing page on the first render (first touch per tab) and handed over when the tags load, even if the visitor has moved to another page by then. The first page view carries `landing_page` and the ids for Tag Manager variables, GA4 (without Tag Manager) gets the landing URL as `page_location`, and the Meta Pixel gets an `_fbc` cookie built from the `fbclid`. `getLanding()` returns them, so forms can send each lead's source.
+- `flushTo`: if a visitor leaves before the tags load, the queued events (not page views) go to your own endpoint with `navigator.sendBeacon`. `createFlushHandler()` in `next-deferred-tags/server` receives them. Respects analytics consent.
+- Google Tag Assistant (GTM Preview) connects: with `gtm_debug` in the URL, or when opened from tagassistant.google.com, the tags load at once.
+- GTM environments (`gtmAuth`, `gtmPreview`) and first-party script URLs for server-side tagging (`gtmScriptUrl`, `gtagScriptUrl`).
+- `gtm`, `ga4` and `metaPixel` accept several ids.
+- `urlPassthrough` for Google Consent Mode.
+- `debug`: logs to the console when tags are scheduled, which trigger loaded them, each script's load time, consent changes and page views.
+- `onBlocked(tag, src)`: called when a tag script fails to load, for example because of an ad blocker. With `debug`, a warning is logged too.
+- `webVitals`: pushes LCP, INP, CLS, FCP and TTFB to the dataLayer as `web_vitals` events.
+- `<ConsentGate category="marketing">`: holds back an embed that sets cookies (YouTube, Maps, social posts) until the visitor allows its category, with an "Allow and show" placeholder. Outside the consent regions it renders straight away.
+- CI checks the size of the browser code (`npm run size`) and builds the Pages Router example. With everything above, `<DeferredTags>` alone is 5.9 KB minified and gzipped (3.1 KB in 0.2.0), and with `<ConsentBanner>` 8.7 KB (5.2 KB).
 - `<ConsentBanner>` shows a small "Powered by Codevibe" link, with the Codevibe mark, at the bottom of its settings view (the one with the category switches), never in the first view. It links to the next-deferred-tags page on codevibe.in and opens in a new tab. On by default; `poweredBy={false}` removes it completely, and `text.poweredBy` translates the words before "Codevibe". The link carries the class `ndt-powered-by` for `unstyled` banners.
 
 ### Changed

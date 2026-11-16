@@ -14,6 +14,7 @@
  * Meta Pixel, LinkedIn Insight Tag, TikTok Pixel, Hotjar and other scripts wait for consent.
  */
 import { consentModeSignals, DENIED, type ConsentChoice } from './consent.js';
+import { fbcFromFbclid, type Landing } from './landing.js';
 
 export interface ScriptSpec {
   src: string;
@@ -27,12 +28,28 @@ export interface ScriptSpec {
 }
 
 export interface TagConfig {
-  /** Google Tag Manager container id, e.g. `GTM-XXXXXXX`. */
-  gtm?: string;
-  /** GA4 measurement id for gtag.js without Tag Manager, e.g. `G-XXXXXXXXXX`. */
-  ga4?: string;
-  /** Meta (Facebook) Pixel id, for the pixel without Tag Manager. */
-  metaPixel?: string;
+  /** Google Tag Manager container id, e.g. `GTM-XXXXXXX`. Several: pass an array. */
+  gtm?: string | string[];
+  /** GA4 measurement id for gtag.js without Tag Manager, e.g. `G-XXXXXXXXXX`. Several: pass an array. */
+  ga4?: string | string[];
+  /** Meta (Facebook) Pixel id, for the pixel without Tag Manager. Several: pass an array. */
+  metaPixel?: string | string[];
+  /** GTM environment (Admin > Environments > Get snippet): the `gtm_auth` value. */
+  gtmAuth?: string;
+  /** GTM environment: the `gtm_preview` value, e.g. `env-3`. */
+  gtmPreview?: string;
+  /**
+   * Load `gtm.js` from your own domain, e.g. a server-side GTM container:
+   * `https://sst.example.com/gtm.js`. Default Google's URL.
+   */
+  gtmScriptUrl?: string;
+  /** Load gtag.js from your own domain, e.g. `https://sst.example.com/gtag/js`. */
+  gtagScriptUrl?: string;
+  /**
+   * Google Consent Mode `url_passthrough`: with ad cookies denied, pass ad click ids to
+   * other pages in the URL so conversions can still be measured. Default false.
+   */
+  urlPassthrough?: boolean;
   /** LinkedIn Insight Tag partner id. */
   linkedin?: string;
   /** Microsoft Clarity project id. Analytics consent. */
@@ -69,6 +86,29 @@ interface State {
   /** Consent handling is on: undefined when off, null while the visitor has not chosen. */
   consent?: ConsentChoice | null;
   consentMode: ConsentMode;
+  /** Click ids and UTM tags from the landing page, if any. */
+  landing?: Landing | null;
+  /** The first page view carries the landing fields. */
+  landingSent?: boolean;
+  /** Log what happens to the console. */
+  debug?: boolean;
+  /** Called when a script fails to load (ad blocker, network). */
+  onBlocked?: (tag: string, src: string) => void;
+}
+
+/** Turn ids that may be one string or a list into a list. */
+export const idList = (v: string | string[] | undefined): string[] => (v ? (Array.isArray(v) ? v : [v]).filter(Boolean) : []);
+
+function log(state: State, ...args: unknown[]) {
+  if (state.debug && typeof console !== 'undefined') console.info('[next-deferred-tags]', ...args);
+}
+
+/** Debug logging, the blocked-script callback and the landing page, set by `<DeferredTags>`. */
+export function configureRuntime(w: TagWindow, opts: { debug?: boolean; onBlocked?: (tag: string, src: string) => void; landing?: Landing | null }): void {
+  const state = getState(w);
+  if (opts.debug !== undefined) state.debug = opts.debug;
+  if (opts.onBlocked) state.onBlocked = opts.onBlocked;
+  if (opts.landing !== undefined && state.landing === undefined) state.landing = opts.landing;
 }
 
 type AnyFn = (...args: unknown[]) => void;
@@ -102,8 +142,9 @@ export type TikTokQueue = unknown[] & {
 };
 
 export type DocLike = {
-  createElement(tag: 'script'): { async: boolean; src: string; nonce?: string; onload?: (() => void) | null; setAttribute(k: string, v: string): void };
+  createElement(tag: 'script'): { async: boolean; src: string; nonce?: string; onload?: (() => void) | null; onerror?: (() => void) | null; setAttribute(k: string, v: string): void };
   head: { appendChild(node: unknown): unknown };
+  cookie?: string;
 };
 
 export function getState(w: TagWindow): State {
@@ -173,6 +214,8 @@ export function initConsent(w: TagWindow, choice: ConsentChoice | null, mode: Co
   ensureGtag(w);
   w.gtag!('consent', 'default', { ...consentModeSignals(choice), functionality_storage: 'granted', security_storage: 'granted' });
   w.gtag!('set', 'ads_data_redaction', !choice?.marketing);
+  if (state.config.urlPassthrough) w.gtag!('set', 'url_passthrough', true);
+  log(state, 'consent default', choice ?? 'not chosen yet', `(${mode} mode)`);
   if (choice) w.dataLayer!.push({ event: 'consent_update', consent_analytics: choice.analytics, consent_marketing: choice.marketing });
   // Vendors whose stubs already exist get their default now; the rest when installStubs runs.
   state.stubs.vendorConsent = true;
@@ -191,6 +234,7 @@ export function updateConsent(w: TagWindow, doc: DocLike, choice: ConsentChoice)
   if (before && before.analytics === state.consent.analytics && before.marketing === state.consent.marketing) return;
   ensureGtag(w);
   w.gtag!('consent', 'update', consentModeSignals(state.consent));
+  log(state, 'consent update', state.consent);
   w.gtag!('set', 'ads_data_redaction', !state.consent.marketing);
   w.dataLayer!.push({ event: 'consent_update', consent_analytics: state.consent.analytics, consent_marketing: state.consent.marketing });
   if (state.config.metaPixel && w.fbq) w.fbq('consent', state.consent.marketing ? 'grant' : 'revoke');
@@ -208,7 +252,7 @@ export function updateConsent(w: TagWindow, doc: DocLike, choice: ConsentChoice)
 /** Merge new ids into the stored config (first value for each key wins). */
 function remember(state: State, cfg: TagConfig) {
   const c = state.config;
-  for (const k of ['gtm', 'ga4', 'metaPixel', 'linkedin', 'clarity', 'uet', 'tiktok', 'hotjar', 'nonce'] as const) {
+  for (const k of ['gtm', 'ga4', 'metaPixel', 'linkedin', 'clarity', 'uet', 'tiktok', 'hotjar', 'nonce', 'gtmAuth', 'gtmPreview', 'gtmScriptUrl', 'gtagScriptUrl', 'urlPassthrough'] as const) {
     if (cfg[k] && !c[k]) (c as Record<string, unknown>)[k] = cfg[k];
   }
   if (cfg.scripts?.length) {
@@ -229,7 +273,7 @@ export function installStubs(w: TagWindow, cfg: TagConfig): void {
     ensureGtag(w);
   }
 
-  if (c.metaPixel && !state.stubs.fbq) {
+  if (idList(c.metaPixel).length && !state.stubs.fbq) {
     state.stubs.fbq = true;
     if (!w.fbq) {
       const n = function fbq(...args: unknown[]) {
@@ -245,7 +289,7 @@ export function installStubs(w: TagWindow, cfg: TagConfig): void {
     }
     // With consent handling on and marketing not granted, the pixel starts revoked.
     if (state.consent !== undefined && !state.consent?.marketing) w.fbq('consent', 'revoke');
-    w.fbq('init', c.metaPixel);
+    for (const id of idList(c.metaPixel)) w.fbq('init', id);
   }
 
   if (c.linkedin && !state.stubs.linkedin) {
@@ -324,9 +368,19 @@ function installTikTokStub(w: TagWindow) {
   w.ttq = ttq;
 }
 
-function addScript(doc: DocLike, spec: string | ScriptSpec, nonce?: string, onload?: () => void) {
+function addScript(doc: DocLike, spec: string | ScriptSpec, nonce?: string, onload?: () => void, state?: State, tag?: string) {
   const s = doc.createElement('script');
-  if (onload) s.onload = onload;
+  const src0 = typeof spec === 'string' ? spec : spec.src;
+  const started = Date.now();
+  s.onload = () => {
+    if (state) log(state, `${tag ?? 'script'} loaded in ${Date.now() - started} ms`, src0);
+    onload?.();
+  };
+  s.onerror = () => {
+    if (!state) return;
+    if (state.debug && typeof console !== 'undefined') console.warn('[next-deferred-tags]', `${tag ?? 'script'} was blocked or failed to load`, src0);
+    state.onBlocked?.(tag ?? 'script', src0);
+  };
   const { src, attributes } = typeof spec === 'string' ? { src: spec, attributes: undefined } : spec;
   s.async = true;
   s.src = src;
@@ -345,25 +399,44 @@ function inject(w: TagWindow, doc: DocLike) {
     add();
   };
 
-  if (c.gtm) {
-    once('gtm', 'google', () => {
+  const add = (tag: string, spec: string | ScriptSpec, onload?: () => void) => {
+    log(state, `loading ${tag}`, typeof spec === 'string' ? spec : spec.src);
+    addScript(doc, spec, c.nonce, onload, state, tag);
+  };
+  const landing = state.landing;
+  const navigated = !!landing && typeof location !== 'undefined' && location.href !== landing.url;
+
+  idList(c.gtm).forEach((id, i) => {
+    once(i === 0 ? 'gtm' : `gtm:${id}`, 'google', () => {
       w.dataLayer!.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
-      addScript(doc, `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(c.gtm!)}`, c.nonce);
+      const env = c.gtmAuth && c.gtmPreview ? `&gtm_auth=${encodeURIComponent(c.gtmAuth)}&gtm_preview=${encodeURIComponent(c.gtmPreview)}&gtm_cookies_win=x` : '';
+      add('Google Tag Manager', `${c.gtmScriptUrl ?? 'https://www.googletagmanager.com/gtm.js'}?id=${encodeURIComponent(id)}${env}`);
     });
-  }
-  if (c.ga4) {
+  });
+  const ga4 = idList(c.ga4);
+  if (ga4.length) {
     once('ga4', 'google', () => {
       w.gtag!('js', new Date());
-      w.gtag!('config', c.ga4);
-      addScript(doc, `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(c.ga4!)}`, c.nonce);
+      // The visitor moved on before the tags loaded: credit the landing page (with its click ids).
+      for (const id of ga4) w.gtag!('config', id, ...(navigated ? [{ page_location: landing!.url }] : []));
+      add('GA4', `${c.gtagScriptUrl ?? 'https://www.googletagmanager.com/gtag/js'}?id=${encodeURIComponent(ga4[0])}`);
     });
   }
-  if (c.metaPixel) once('meta', 'marketing', () => addScript(doc, 'https://connect.facebook.net/en_US/fbevents.js', c.nonce));
-  if (c.linkedin) once('linkedin', 'marketing', () => addScript(doc, 'https://snap.licdn.com/li.lms-analytics/insight.min.js', c.nonce));
-  if (c.clarity) once('clarity', 'modeled-analytics', () => addScript(doc, `https://www.clarity.ms/tag/${encodeURIComponent(c.clarity!)}`, c.nonce));
+  if (idList(c.metaPixel).length) {
+    once('meta', 'marketing', () => {
+      // Meta's pixel builds _fbc from an fbclid in the URL; the visitor may have left that page.
+      const fbclid = landing?.params.fbclid;
+      if (fbclid && doc.cookie !== undefined && !/(?:^|; )_fbc=/.test(doc.cookie)) {
+        doc.cookie = `_fbc=${fbcFromFbclid(fbclid, landing!.ts)}; Max-Age=${90 * 86400}; Path=/; SameSite=Lax`;
+      }
+      add('Meta Pixel', 'https://connect.facebook.net/en_US/fbevents.js');
+    });
+  }
+  if (c.linkedin) once('linkedin', 'marketing', () => add('LinkedIn Insight', 'https://snap.licdn.com/li.lms-analytics/insight.min.js'));
+  if (c.clarity) once('clarity', 'modeled-analytics', () => add('Microsoft Clarity', `https://www.clarity.ms/tag/${encodeURIComponent(c.clarity!)}`));
   if (c.uet) {
     once('uet', 'modeled-marketing', () =>
-      addScript(doc, 'https://bat.bing.com/bat.js', c.nonce, () => {
+      add('Microsoft UET', 'https://bat.bing.com/bat.js', () => {
         // As in Microsoft's snippet: hand the queue to UET and record the page load.
         // enableAutoSpaTracking makes UET count client-side navigations itself.
         if (!w.UET || !Array.isArray(w.uetq)) return;
@@ -380,15 +453,15 @@ function inject(w: TagWindow, doc: DocLike) {
       t._i![id] = [];
       t._t![id] = Date.now();
       t._o![id] = {};
-      addScript(doc, `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(id)}&lib=ttq`, c.nonce);
+      add('TikTok Pixel', `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(id)}&lib=ttq`);
     });
   }
   if (c.hotjar) {
-    once('hotjar', 'analytics', () => addScript(doc, `https://static.hotjar.com/c/hotjar-${encodeURIComponent(String(c.hotjar))}.js?sv=6`, c.nonce));
+    once('hotjar', 'analytics', () => add('Hotjar', `https://static.hotjar.com/c/hotjar-${encodeURIComponent(String(c.hotjar))}.js?sv=6`));
   }
   for (const s of c.scripts ?? []) {
     const spec = typeof s === 'string' ? { src: s } : s;
-    once(`script:${spec.src}`, spec.consent ?? 'marketing', () => addScript(doc, s, c.nonce));
+    once(`script:${spec.src}`, spec.consent ?? 'marketing', () => add('script', s));
   }
 }
 
@@ -423,7 +496,12 @@ export function trackPageView(w: TagWindow, page: string, eventName = 'pageview'
   if (state.lastPage === page) return false;
   state.lastPage = page;
   w.dataLayer = w.dataLayer || [];
-  w.dataLayer.push({ event: eventName, page });
+  // The first page view carries the landing page and its click ids / UTM tags, for Tag
+  // Manager variables, in case the visitor moves on before the tags load.
+  const extra = state.landing && !state.landingSent ? { landing_page: state.landing.url, ...state.landing.params } : {};
+  if (state.landing) state.landingSent = true;
+  w.dataLayer.push({ event: eventName, page, ...extra });
+  log(state, 'page view', page);
   // Without marketing consent these pixels record nothing, not even queued page views.
   if (state.config.metaPixel && w.fbq && allowed(state, 'marketing')) w.fbq('track', 'PageView');
   if (state.config.tiktok && w.ttq && allowed(state, 'marketing')) (w.ttq as unknown as Record<string, AnyFn>).page();
