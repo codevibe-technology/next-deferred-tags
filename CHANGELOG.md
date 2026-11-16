@@ -14,6 +14,7 @@ All notable changes to this project are documented here. The format follows [Kee
   - `tiktok`: TikTok Pixel. Loads after marketing consent, uses the pixel's `holdConsent` / `grantConsent` / `revokeConsent`, and records a page view per navigation only while marketing is allowed.
   - `hotjar`: Hotjar. It has no consent API, so it loads only after analytics consent.
 - `trackTikTokEvent()`, `trackUetEvent()`, `clarityTag()` and `hotjarEvent()` helpers. Like `trackMetaEvent()`, they queue until the script loads.
+- `<ConsentBanner>` shows a small "Powered by Codevibe" link at the bottom of its settings view (the one with the category switches), never in the first view. It links to the next-deferred-tags page on codevibe.in and opens in a new tab. On by default; `poweredBy={false}` removes it completely, and `text.poweredBy` translates the words before "Codevibe". The link carries the class `ndt-powered-by` for `unstyled` banners.
 
 ### Changed
 

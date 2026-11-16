@@ -19,6 +19,8 @@ export interface ConsentBannerText {
   marketing: string;
   marketingDescription: string;
   alwaysOn: string;
+  /** Words before "Codevibe" in the settings view credit line. */
+  poweredBy: string;
 }
 
 export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
@@ -36,7 +38,12 @@ export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
   marketing: 'Marketing',
   marketingDescription: 'Whether ads lead to enquiries, and showing ads to past visitors.',
   alwaysOn: 'On',
+  poweredBy: 'Powered by',
 };
+
+/** Where the settings view credit links to. */
+export const POWERED_BY_URL =
+  'https://codevibe.in/tools/next-deferred-tags?utm_source=next-deferred-tags&utm_medium=consent-banner&utm_campaign=powered-by';
 
 export interface ConsentBannerProps {
   /** Link to your privacy or cookie policy. */
@@ -58,6 +65,12 @@ export interface ConsentBannerProps {
   position?: 'bottom-left' | 'bottom-right' | 'bottom';
   /** Drop the built-in styles and style the `ndt-consent*` class names yourself. */
   unstyled?: boolean;
+  /**
+   * Show a small "Powered by Codevibe" link at the bottom of the settings view (the one
+   * with the category switches). It never appears in the first view. Default `true`;
+   * `false` removes it completely.
+   */
+  poweredBy?: boolean;
   className?: string;
 }
 
@@ -85,6 +98,7 @@ export function ConsentBanner({
   theme = 'dark',
   position = 'bottom-left',
   unstyled = false,
+  poweredBy = true,
   className,
 }: ConsentBannerProps) {
   const t = { ...DEFAULT_CONSENT_TEXT, ...text };
@@ -241,6 +255,14 @@ export function ConsentBanner({
           </button>
         )}
       </div>
+      {detail && poweredBy && (
+        <p className="ndt-powered-by" style={st({ margin: '12px 0 0', fontSize: 11.5, color: 'var(--ndt-muted)', textAlign: 'center' })}>
+          {t.poweredBy}{' '}
+          <a href={POWERED_BY_URL} target="_blank" rel="noopener" style={st({ color: 'inherit', textDecoration: 'underline' })}>
+            Codevibe
+          </a>
+        </p>
+      )}
     </div>
   );
 }
