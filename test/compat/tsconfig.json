@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "noEmit": true, "rootDir": "../.." },
+  "include": ["v0.2-api.tsx"]
+}

@@ -30,7 +30,8 @@
   <a href="#server-side-events">Server events</a> ·
   <a href="#props">Props</a> ·
   <a href="#trade-offs-honestly">Trade-offs</a> ·
-  <a href="#faq">FAQ</a>
+  <a href="#faq">FAQ</a> ·
+  <a href="https://codevibe.in/tools/next-deferred-tags/changelog?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=nav">Changelog</a>
 </p>
 
 ---
@@ -468,6 +469,10 @@ It gives you the technical parts: nothing optional before consent where consent 
 
 Yes: call `loadTagsNow()` wherever you need them immediately, or set a smaller `delay`.
 </details>
+
+## Upgrading
+
+From 0.2, upgrading needs no code changes: every 0.2 prop and helper works as before, and tags-only setups behave exactly the same. If you use the built-in banner with its default texts, you will see the new texts, a "Powered by Codevibe" link and the visitor's consent ID in its settings view. Pass `text`, `poweredBy={false}` or `showConsentId={false}` to keep the old look. Every change is listed in the [changelog](CHANGELOG.md), also on [codevibe.in](https://codevibe.in/tools/next-deferred-tags/changelog?utm_source=github&utm_medium=readme&utm_campaign=next-deferred-tags&utm_content=upgrading).
 
 ## Examples
 

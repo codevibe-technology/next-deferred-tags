@@ -2,6 +2,8 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+You can also read it on the [next-deferred-tags changelog page](https://codevibe.in/tools/next-deferred-tags/changelog?utm_source=github&utm_medium=changelog&utm_campaign=next-deferred-tags) on codevibe.in, which updates from this file. Every pull request that changes behaviour adds a line under "Unreleased" (CI checks this), and each release moves those lines under its version and date.
+
 ## Unreleased
 
 ### Added
@@ -44,6 +46,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- Upgrading from 0.2 needs no code changes. The new banner text keys (`poweredBy`, `usedBy`, `consentId`) are optional, so translations typed as `ConsentBannerText` for 0.2 still compile, and `test/compat/v0.2-api.tsx` (written against the 0.2 API) is compiled on every test run so this stays true. Visible differences after upgrading with the default banner: the new default texts, the "Powered by Codevibe" link and the consent ID line in the settings view (`text`, `poweredBy={false}` and `showConsentId={false}` restore the old look).
+- The CHANGELOG and README link to the changelog page on codevibe.in.
 - README rewritten for 0.3: Pages Router quick start, a table of every built-in tag with the consent it needs, events and ad click ids, regions with a middleware example, the banner (with a screenshot), other consent tools, embeds, the consent log (database and Google Sheet), server-side events, debugging, the full props list, and updated trade-offs, including the bundle size and the "Powered by" link.
 - The package description and keywords cover the new tags, the Pages Router and the server helpers.
 - `countryFromHeaders`, `consentRequired`, `COUNTRY_COOKIE` and `CONSENT_REGIONS` are also exported from `next-deferred-tags/server`, for middleware.

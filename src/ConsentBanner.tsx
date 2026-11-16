@@ -20,12 +20,12 @@ export interface ConsentBannerText {
   marketing: string;
   marketingDescription: string;
   alwaysOn: string;
-  /** Words before "Codevibe" in the settings view credit line. */
-  poweredBy: string;
-  /** Label before the list of tools in each category, e.g. "Used by". */
-  usedBy: string;
-  /** Label before the visitor's consent ID in the settings view. */
-  consentId: string;
+  /** Words before "Codevibe" in the settings view credit line. Optional (added in 0.3). */
+  poweredBy?: string;
+  /** Label before the list of tools in each category, e.g. "Used by". Optional (added in 0.3). */
+  usedBy?: string;
+  /** Label before the visitor's consent ID in the settings view. Optional (added in 0.3). */
+  consentId?: string;
 }
 
 export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
@@ -188,7 +188,9 @@ export function ConsentBanner({
   consentRegions = CONSENT_REGIONS,
   className,
 }: ConsentBannerProps) {
-  const t = { ...DEFAULT_CONSENT_TEXT, ...text };
+  // Texts written for 0.2 lack the newer keys: fall back to the English ones.
+  const t = { ...DEFAULT_CONSENT_TEXT, ...text } as Required<ConsentBannerText>;
+  for (const k of ['poweredBy', 'usedBy', 'consentId'] as const) if (!t[k]) t[k] = DEFAULT_CONSENT_TEXT[k]!;
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState(false);
   const [choice, setChoice] = useState<ConsentChoice>({ analytics: false, marketing: false });
