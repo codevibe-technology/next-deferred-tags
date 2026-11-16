@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## Unreleased
 
+### Added
+
+- Pages Router support: `import { DeferredTags } from 'next-deferred-tags/pages'` in `pages/_app.tsx`. Page views are counted once the router is ready and on every `routeChangeComplete`; hash-only changes are not counted. The new entry point also exports `ConsentBanner` and every helper, so a Pages Router app imports everything from one place.
+- `examples/pages-router`.
+
+### Changed
+
+- Route tracking is now a small per-router piece on top of a shared core, so the App Router and Pages Router builds load tags, queue events and handle consent the same way. The App Router import is unchanged.
+
 ## [0.2.0] - 2026-11-12
 
 ### Added
