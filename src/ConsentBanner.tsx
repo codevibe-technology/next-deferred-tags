@@ -24,6 +24,8 @@ export interface ConsentBannerText {
   poweredBy: string;
   /** Label before the list of tools in each category, e.g. "Used by". */
   usedBy: string;
+  /** Label before the visitor's consent ID in the settings view. */
+  consentId: string;
 }
 
 export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
@@ -43,6 +45,7 @@ export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
   alwaysOn: 'Always active',
   poweredBy: 'Powered by',
   usedBy: 'Used by',
+  consentId: 'Your consent ID',
 };
 
 /** Hindi texts. Pass as `text={CONSENT_TEXT_HI}`. */
@@ -63,6 +66,7 @@ export const CONSENT_TEXT_HI: ConsentBannerText = {
   alwaysOn: 'हमेशा सक्रिय',
   poweredBy: 'Powered by',
   usedBy: 'इस्तेमाल करने वाले',
+  consentId: 'आपकी सहमति ID',
 };
 
 /** The Codevibe mark, 12px, in the current text colour's accent. */
@@ -136,6 +140,12 @@ export interface ConsentBannerProps {
   country?: string;
   /** Countries where the banner opens by itself. Default: EU/EEA, UK, Switzerland, India. */
   consentRegions?: readonly string[] | 'all';
+  /**
+   * In the settings view, show the visitor's consent ID once they have chosen, so they can
+   * quote it when asking what they agreed to (it is the `visitorId` in your consent log).
+   * Default `true`.
+   */
+  showConsentId?: boolean;
   /** Drop the built-in styles and style the `ndt-consent*` class names yourself. */
   unstyled?: boolean;
   /**
@@ -173,6 +183,7 @@ export function ConsentBanner({
   unstyled = false,
   poweredBy = true,
   showTools = false,
+  showConsentId = true,
   country,
   consentRegions = CONSENT_REGIONS,
   className,
@@ -181,6 +192,7 @@ export function ConsentBanner({
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState(false);
   const [choice, setChoice] = useState<ConsentChoice>({ analytics: false, marketing: false });
+  const [consentId, setConsentId] = useState<string | null>(null);
   const titleId = useId();
 
   useEffect(() => {
@@ -188,6 +200,7 @@ export function ConsentBanner({
     const reopen = () => {
       const c = readConsent(document, version);
       setChoice({ analytics: !!c?.analytics, marketing: !!c?.marketing });
+      setConsentId(c?.id ?? null);
       setDetail(true);
       setOpen(true);
     };
@@ -340,6 +353,12 @@ export function ConsentBanner({
           </button>
         )}
       </div>
+      {detail && showConsentId && consentId && (
+        <p className="ndt-consent-id" style={st({ margin: '12px 0 0', fontSize: 11.5, color: 'var(--ndt-muted)', textAlign: 'center' })}>
+          {t.consentId}:{' '}
+          <span style={st({ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', userSelect: 'all', wordBreak: 'break-all' })}>{consentId}</span>
+        </p>
+      )}
       {detail && poweredBy && (
         <p className="ndt-powered-by" style={st({ margin: '12px 0 0', fontSize: 11.5, color: 'var(--ndt-muted)', textAlign: 'center' })}>
           {t.poweredBy}{' '}
