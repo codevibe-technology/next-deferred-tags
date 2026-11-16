@@ -44,6 +44,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- README rewritten for 0.3: Pages Router quick start, a table of every built-in tag with the consent it needs, events and ad click ids, regions with a middleware example, the banner (with a screenshot), other consent tools, embeds, the consent log (database and Google Sheet), server-side events, debugging, the full props list, and updated trade-offs, including the bundle size and the "Powered by" link.
+- The package description and keywords cover the new tags, the Pages Router and the server helpers.
+- `countryFromHeaders`, `consentRequired`, `COUNTRY_COOKIE` and `CONSENT_REGIONS` are also exported from `next-deferred-tags/server`, for middleware.
 - New default banner texts in the style of large consent tools: "Cookie preferences", "Required cookies", "Functional cookies" and "Advertising cookies", each with a plain description and "Some examples include". The settings button reads "Manage preferences" and the save button "Confirm my choices". "Reject all" and "Accept all" keep equal weight, and the optional switches still start off. Sites that pass their own `text` are not affected.
 - Route tracking is now a small per-router piece on top of a shared core, so the App Router and Pages Router builds load tags, queue events and handle consent the same way. The App Router import is unchanged.
 
@@ -57,7 +60,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - `setConsent()`, `getConsent()` and the framework-free `initConsent`, `updateConsent`, `consentModeSignals`, `readConsent`, `writeConsent`. The choice is stored in a first-party `ndt_consent` cookie for 12 months, with a random id that survives changes and a version that can be bumped to ask again.
 - `scripts` entries accept `consent: 'analytics' | 'marketing' | 'necessary'`.
 - AI referrals: visits sent by ChatGPT, Perplexity, Claude, Gemini, Copilot and other assistants push an `ai_referral` dataLayer event once per visit (`aiReferrals` prop, on by default). `detectAiReferral()` is exported.
-- Automated releases: merging a `chore(release)` pull request publishes to npm with provenance and creates the GitHub release from these notes.
+- Release workflow: merging a `chore(release)` pull request publishes to npm with provenance and creates the GitHub release from these notes, once npm trusted publishing is set up for the package. 0.2.0 itself was published by hand, without provenance.
 
 ### Changed
 

@@ -9,6 +9,8 @@
 import { CONSENT_COOKIE, type ConsentAction, type ConsentChoice } from '../consent.js';
 
 export { consentLogSchema, sheetsConsentLog, sqlConsentLog } from './consentLog.js';
+// For middleware: set the ndt_country cookie from your host's header (no client code).
+export { CONSENT_REGIONS, COUNTRY_COOKIE, consentRequired, countryFromHeaders } from '../region.js';
 export type { ConsentLogEntry, ConsentLogStore, QueryFn, SqlDialect } from './consentLog.js';
 
 type Headers = { get(name: string): string | null };
