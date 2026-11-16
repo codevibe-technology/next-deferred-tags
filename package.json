@@ -68,6 +68,19 @@
     },
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "pages": [
+        "./dist/pages/index.d.ts"
+      ],
+      "adapters": [
+        "./dist/adapters/index.d.ts"
+      ],
+      "server": [
+        "./dist/server/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist",
     "README.md",

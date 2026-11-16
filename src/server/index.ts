@@ -47,9 +47,17 @@ export function consentFromRequest(req: RequestLike, version = '1'): ConsentChoi
   }
 }
 
+/** Web Crypto: global on Edge, browsers and Node 19+; Node 18 has it only in `node:crypto`. */
+async function subtle(): Promise<SubtleCrypto> {
+  const g = (globalThis as { crypto?: Crypto }).crypto;
+  if (g?.subtle) return g.subtle;
+  const mod = (await import(/* webpackIgnore: true */ /* turbopackIgnore: true */ 'node:crypto')) as unknown as { webcrypto: Crypto };
+  return mod.webcrypto.subtle;
+}
+
 async function sha256(v: string): Promise<string> {
   const data = new TextEncoder().encode(v);
-  const hash = await crypto.subtle.digest('SHA-256', data);
+  const hash = await (await subtle()).digest('SHA-256', data);
   return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, '0')).join('');
 }
 

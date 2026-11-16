@@ -48,6 +48,8 @@ You can also read it on the [next-deferred-tags changelog page](https://codevibe
 
 - Upgrading from 0.2 needs no code changes. The new banner text keys (`poweredBy`, `usedBy`, `consentId`) are optional, so translations typed as `ConsentBannerText` for 0.2 still compile, and `test/compat/v0.2-api.tsx` (written against the 0.2 API) is compiled on every test run so this stays true. Visible differences after upgrading with the default banner: the new default texts, the "Powered by Codevibe" link and the consent ID line in the settings view (`text`, `poweredBy={false}` and `showConsentId={false}` restore the old look).
 - The CHANGELOG and README link to the changelog page on codevibe.in.
+- `next-deferred-tags/pages`, `/adapters` and `/server` also resolve in projects that use TypeScript's older `"moduleResolution": "node"` (common in Pages Router apps), through `typesVersions`.
+- The server helpers run on Node 18, which has Web Crypto only in `node:crypto`, as well as on Node 19+ and the Edge runtime.
 - README rewritten for 0.3: Pages Router quick start, a table of every built-in tag with the consent it needs, events and ad click ids, regions with a middleware example, the banner (with a screenshot), other consent tools, embeds, the consent log (database and Google Sheet), server-side events, debugging, the full props list, and updated trade-offs, including the bundle size and the "Powered by" link.
 - The package description and keywords cover the new tags, the Pages Router and the server helpers.
 - `countryFromHeaders`, `consentRequired`, `COUNTRY_COOKIE` and `CONSENT_REGIONS` are also exported from `next-deferred-tags/server`, for middleware.
