@@ -89,6 +89,10 @@ On [codevibe.in](https://codevibe.in?utm_source=github&utm_medium=readme&utm_cam
 
 ## Features
 
+<p align="center">
+  <img src=".github/assets/whats-inside.png" alt="What's inside next-deferred-tags: tags load after the page is ready, eight tags built in, consent built in, a consent log you can keep, ad clicks keep their credit, and events from your server" width="100%">
+</p>
+
 - ⚡ **Nothing downloads during page load.** No tag `<script>` in the server HTML and no requests until the visitor interacts or the delay passes.
 - 🧾 **No lost data.** The same queues the official snippets create (`dataLayer`, `gtag`, `fbq`, `lintrk`, `clarity`, `uetq`, `ttq`, `hj`) exist from the first render, so early page views and events are replayed in order.
 - 🎯 **Ad clicks keep their credit.** `gclid`, `fbclid`, `msclkid`, `ttclid` and UTM tags from the landing page reach the tags even if the visitor moved on before they loaded.
