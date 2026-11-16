@@ -3,6 +3,7 @@
 import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react';
 import { OPEN_SETTINGS_EVENT, readConsent, type ConsentAction, type ConsentChoice, type StoredConsent } from './consent.js';
 import { setConsent } from './events.js';
+import { CONSENT_REGIONS, consentRequired, readCountry } from './region.js';
 
 export interface ConsentBannerText {
   title: string;
@@ -19,24 +20,110 @@ export interface ConsentBannerText {
   marketing: string;
   marketingDescription: string;
   alwaysOn: string;
+  /** Words before "Codevibe" in the settings view credit line. Optional (added in 0.3). */
+  poweredBy?: string;
+  /** Label before the list of tools in each category, e.g. "Used by". Optional (added in 0.3). */
+  usedBy?: string;
+  /** Label before the visitor's consent ID in the settings view. Optional (added in 0.3). */
+  consentId?: string;
+  /** Text of the npm link in the credit line, e.g. "Free on npm". Optional (added in 0.3). */
+  openSource?: string;
 }
 
 export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
-  title: 'Your privacy choices',
-  body: 'We use cookies to understand how this site is used and to measure our ads. Necessary cookies keep the site working and are always on. You can change your choice at any time.',
+  title: 'Cookie preferences',
+  body: 'We use cookies to keep this site working, to make it better and to show you relevant ads. You can choose which ones to allow, and change your choice at any time.',
   policy: 'Privacy policy',
   acceptAll: 'Accept all',
   rejectAll: 'Reject all',
-  choose: 'Choose',
-  save: 'Save choices',
-  necessary: 'Necessary',
-  necessaryDescription: 'Remembers this choice and keeps the site secure. Always on.',
-  analytics: 'Analytics',
-  analyticsDescription: 'Which pages are visited and how people find the site.',
-  marketing: 'Marketing',
-  marketingDescription: 'Whether ads lead to enquiries, and showing ads to past visitors.',
-  alwaysOn: 'On',
+  choose: 'Manage preferences',
+  save: 'Confirm my choices',
+  necessary: 'Required cookies',
+  necessaryDescription: 'Needed for the site to work. Some examples include: security cookies and the cookie that remembers this choice.',
+  analytics: 'Functional cookies',
+  analyticsDescription: 'Help the site work better and improve our services. Some examples include: cookies used to understand site traffic, which pages are useful and where the site can be faster.',
+  marketing: 'Advertising cookies',
+  marketingDescription: 'Help show you ads that match your interests and measure how our ads perform. Some examples include: cookies used for remarketing and to measure ad results.',
+  alwaysOn: 'Always active',
+  poweredBy: 'Powered by',
+  usedBy: 'Used by',
+  consentId: 'Your consent ID',
+  openSource: 'Free on npm',
 };
+
+/** Hindi texts. Pass as `text={CONSENT_TEXT_HI}`. */
+export const CONSENT_TEXT_HI: ConsentBannerText = {
+  title: 'कुकी प्राथमिकताएँ',
+  body: 'हम कुकीज़ का इस्तेमाल इस साइट को चलाने, इसे बेहतर बनाने और आपको काम के विज्ञापन दिखाने के लिए करते हैं। आप चुन सकते हैं कि किन्हें अनुमति देनी है, और अपना चुनाव कभी भी बदल सकते हैं।',
+  policy: 'गोपनीयता नीति',
+  acceptAll: 'सभी स्वीकार करें',
+  rejectAll: 'सभी अस्वीकार करें',
+  choose: 'प्राथमिकताएँ चुनें',
+  save: 'मेरा चुनाव सेव करें',
+  necessary: 'ज़रूरी कुकीज़',
+  necessaryDescription: 'साइट के काम करने के लिए ज़रूरी। कुछ उदाहरण: सुरक्षा कुकीज़ और वह कुकी जो आपका यह चुनाव याद रखती है।',
+  analytics: 'फ़ंक्शनल कुकीज़',
+  analyticsDescription: 'साइट को बेहतर काम करने और हमारी सेवाएँ सुधारने में मदद करती हैं। कुछ उदाहरण: साइट ट्रैफ़िक समझने वाली कुकीज़, कौन से पेज काम के हैं और साइट कहाँ तेज़ हो सकती है।',
+  marketing: 'विज्ञापन कुकीज़',
+  marketingDescription: 'आपकी रुचि से मेल खाते विज्ञापन दिखाने और हमारे विज्ञापनों का असर मापने में मदद करती हैं। कुछ उदाहरण: रीमार्केटिंग और विज्ञापन के नतीजे मापने वाली कुकीज़।',
+  alwaysOn: 'हमेशा सक्रिय',
+  poweredBy: 'Powered by',
+  usedBy: 'इस्तेमाल करने वाले',
+  consentId: 'आपकी सहमति ID',
+  openSource: 'npm पर मुफ़्त',
+};
+
+/** The npm logo, 11px. */
+function NpmMark() {
+  return (
+    <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" style={{ display: 'inline-block', verticalAlign: '-1px', marginRight: 4 }}>
+      <path fill="#CB3837" d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z" />
+    </svg>
+  );
+}
+
+/** The Codevibe mark, 11px. */
+function CodevibeMark() {
+  return (
+    <svg aria-hidden="true" width="11" height="11" viewBox="0 0 512 512" style={{ display: 'inline-block', verticalAlign: '-1px', marginRight: 4 }}>
+      <g fill="#1B6AE0">
+        <rect x="255" y="10" width="235" height="49" />
+        <rect x="441" y="10" width="49" height="236" />
+        <rect x="186" y="80" width="49" height="421" />
+        <rect x="0" y="266" width="421" height="49" />
+        <rect x="186" y="290.5" width="49" height="210.5" transform="rotate(45 210.5 290.5)" />
+        <rect x="186" y="80" width="49" height="421" transform="rotate(-45 210.5 290.5)" />
+      </g>
+    </svg>
+  );
+}
+
+/** Which configured tools each category covers, read from <DeferredTags>, for the settings view. */
+function toolsByCategory(): Record<'analytics' | 'marketing', string[]> {
+  const out = { analytics: [] as string[], marketing: [] as string[] };
+  if (typeof window === 'undefined') return out;
+  const c = (window as unknown as { __nextDeferredTags?: { config?: Record<string, unknown> } }).__nextDeferredTags?.config;
+  if (!c) return out;
+  if (c.gtm) {
+    out.analytics.push('Google');
+    out.marketing.push('Google');
+  }
+  if (c.ga4 && !c.gtm) out.analytics.push('Google Analytics');
+  if (c.clarity) out.analytics.push('Microsoft Clarity');
+  if (c.hotjar) out.analytics.push('Hotjar');
+  if (c.metaPixel) out.marketing.push('Meta');
+  if (c.linkedin) out.marketing.push('LinkedIn');
+  if (c.tiktok) out.marketing.push('TikTok');
+  if (c.uet) out.marketing.push('Microsoft Advertising');
+  return out;
+}
+
+/** The npm package page, linked from the credit line. */
+export const NPM_URL = 'https://www.npmjs.com/package/next-deferred-tags';
+
+/** Where the settings view credit links to. */
+export const POWERED_BY_URL =
+  'https://codevibe.in/tools/next-deferred-tags?utm_source=next-deferred-tags&utm_medium=consent-banner&utm_campaign=powered-by';
 
 export interface ConsentBannerProps {
   /** Link to your privacy or cookie policy. */
@@ -56,8 +143,33 @@ export interface ConsentBannerProps {
   theme?: 'dark' | 'light';
   /** `'bottom-left'` (default), `'bottom-right'` or `'bottom'` (full width). */
   position?: 'bottom-left' | 'bottom-right' | 'bottom';
+  /**
+   * In the settings view, name the tools each category turns on (read from
+   * `<DeferredTags>`, e.g. "Used by: Google Analytics, Microsoft Clarity"). Default `false`.
+   */
+  showTools?: boolean;
+  /**
+   * The visitor's country. Outside `consentRegions` the banner does not open by itself
+   * (a "Cookie settings" link still opens it). Falls back to the `ndt_country` cookie;
+   * unknown country: the banner opens. Pass the same values as to `<DeferredTags>`.
+   */
+  country?: string;
+  /** Countries where the banner opens by itself. Default: EU/EEA, UK, Switzerland, India. */
+  consentRegions?: readonly string[] | 'all';
+  /**
+   * In the settings view, show the visitor's consent ID once they have chosen, so they can
+   * quote it when asking what they agreed to (it is the `visitorId` in your consent log).
+   * Default `true`.
+   */
+  showConsentId?: boolean;
   /** Drop the built-in styles and style the `ndt-consent*` class names yourself. */
   unstyled?: boolean;
+  /**
+   * Show a small "Powered by Codevibe" link at the bottom of the settings view (the one
+   * with the category switches). It never appears in the first view. Default `true`;
+   * `false` removes it completely.
+   */
+  poweredBy?: boolean;
   className?: string;
 }
 
@@ -85,25 +197,35 @@ export function ConsentBanner({
   theme = 'dark',
   position = 'bottom-left',
   unstyled = false,
+  poweredBy = true,
+  showTools = false,
+  showConsentId = true,
+  country,
+  consentRegions = CONSENT_REGIONS,
   className,
 }: ConsentBannerProps) {
-  const t = { ...DEFAULT_CONSENT_TEXT, ...text };
+  // Texts written for 0.2 lack the newer keys: fall back to the English ones.
+  const t = { ...DEFAULT_CONSENT_TEXT, ...text } as Required<ConsentBannerText>;
+  for (const k of ['poweredBy', 'usedBy', 'consentId', 'openSource'] as const) if (!t[k]) t[k] = DEFAULT_CONSENT_TEXT[k]!;
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState(false);
   const [choice, setChoice] = useState<ConsentChoice>({ analytics: false, marketing: false });
+  const [consentId, setConsentId] = useState<string | null>(null);
   const titleId = useId();
 
   useEffect(() => {
-    if (!readConsent(document, version)) setOpen(true);
+    if (!readConsent(document, version) && consentRequired(country ?? readCountry(document), consentRegions)) setOpen(true);
     const reopen = () => {
       const c = readConsent(document, version);
       setChoice({ analytics: !!c?.analytics, marketing: !!c?.marketing });
+      setConsentId(c?.id ?? null);
       setDetail(true);
       setOpen(true);
     };
     window.addEventListener(OPEN_SETTINGS_EVENT, reopen);
     return () => window.removeEventListener(OPEN_SETTINGS_EVENT, reopen);
-  }, [version]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version, country]);
 
   if (!open) return null;
 
@@ -169,13 +291,20 @@ export function ConsentBanner({
               <strong style={st({ display: 'block' })}>{t.necessary}</strong>
               <span style={st({ color: 'var(--ndt-muted)', fontSize: 13 })}>{t.necessaryDescription}</span>
             </span>
-            <span style={st({ color: 'var(--ndt-muted)', fontSize: 12 })}>{t.alwaysOn}</span>
+            <span style={st({ flex: 'none', whiteSpace: 'nowrap', color: 'var(--ndt-muted)', fontSize: 12 })}>{t.alwaysOn}</span>
           </li>
-          {categories.map((k) => (
+          {categories.map((k) => {
+            const tools = showTools ? toolsByCategory()[k] : [];
+            return (
             <li key={k} className="ndt-consent-row" style={st({ display: 'flex', justifyContent: 'space-between', gap: 16 })}>
               <span>
                 <strong style={st({ display: 'block' })}>{k === 'analytics' ? t.analytics : t.marketing}</strong>
-                <span style={st({ color: 'var(--ndt-muted)', fontSize: 13 })}>{k === 'analytics' ? t.analyticsDescription : t.marketingDescription}</span>
+                <span style={st({ display: 'block', color: 'var(--ndt-muted)', fontSize: 13 })}>{k === 'analytics' ? t.analyticsDescription : t.marketingDescription}</span>
+                {tools.length > 0 && (
+                  <span className="ndt-consent-tools" style={st({ display: 'block', color: 'var(--ndt-muted)', fontSize: 12, marginTop: 2, opacity: 0.85 })}>
+                    {t.usedBy}: {tools.join(', ')}
+                  </span>
+                )}
               </span>
               <button
                 type="button"
@@ -211,7 +340,8 @@ export function ConsentBanner({
                 />
               </button>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
       <div className="ndt-consent-actions" style={st({ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' })}>
@@ -241,6 +371,26 @@ export function ConsentBanner({
           </button>
         )}
       </div>
+      {detail && showConsentId && consentId && (
+        <p className="ndt-consent-id" style={st({ margin: '12px 0 0', fontSize: 11.5, color: 'var(--ndt-muted)', textAlign: 'center' })}>
+          {t.consentId}:{' '}
+          <span style={st({ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', userSelect: 'all', wordBreak: 'break-all' })}>{consentId}</span>
+        </p>
+      )}
+      {detail && poweredBy && (
+        <p className="ndt-powered-by" style={st({ margin: '12px 0 0', fontSize: 11.5, color: 'var(--ndt-muted)', textAlign: 'center' })}>
+          {t.poweredBy}{' '}
+          <a href={POWERED_BY_URL} target="_blank" rel="noopener" style={st({ color: 'inherit', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' })}>
+            <CodevibeMark />
+            Codevibe
+          </a>
+          <span aria-hidden="true" style={st({ margin: '0 6px' })}>·</span>
+          <a href={NPM_URL} target="_blank" rel="noopener" style={st({ color: 'inherit', textDecoration: 'none', whiteSpace: 'nowrap' })}>
+            <NpmMark />
+            {t.openSource}
+          </a>
+        </p>
+      )}
     </div>
   );
 }

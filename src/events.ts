@@ -34,11 +34,73 @@ export function pushEvent(event: string, params: Record<string, unknown> = {}): 
  * trackMetaEvent('Lead', { content_name: 'contact' });
  * ```
  */
-export function trackMetaEvent(name: string, params?: Record<string, unknown>): void {
+export function trackMetaEvent(name: string, params?: Record<string, unknown>, options?: { eventId?: string }): void {
   const w = win();
   if (!w?.fbq) return;
-  if (params) w.fbq('track', name, params);
+  if (options?.eventId) w.fbq('track', name, params ?? {}, { eventID: options.eventId });
+  else if (params) w.fbq('track', name, params);
   else w.fbq('track', name);
+}
+
+/**
+ * A random id to send with the same event from the browser and from your server
+ * (`sendMetaEvent` in `next-deferred-tags/server`), so Meta counts it once.
+ *
+ * ```ts
+ * const eventId = newEventId();
+ * trackMetaEvent('Lead', { content_name: 'contact' }, { eventId });
+ * await fetch('/api/contact', { method: 'POST', body: JSON.stringify({ ...form, eventId }) });
+ * ```
+ */
+export function newEventId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  }
+}
+
+/**
+ * Send a TikTok Pixel event (`tiktok` prop). Queued until the pixel loads.
+ *
+ * ```ts
+ * trackTikTokEvent('SubmitForm', { content_name: 'contact' });
+ * ```
+ */
+export function trackTikTokEvent(name: string, params?: Record<string, unknown>, options?: Record<string, unknown>): void {
+  const w = win();
+  const ttq = w?.ttq as unknown as { track?: (...a: unknown[]) => void } | undefined;
+  if (!ttq?.track) return;
+  const args: unknown[] = [name];
+  if (params || options) args.push(params ?? {});
+  if (options) args.push(options);
+  ttq.track(...args);
+}
+
+/**
+ * Send a Microsoft Advertising (UET) event (`uet` prop). Queued until the tag loads.
+ *
+ * ```ts
+ * trackUetEvent('submit_lead_form', { event_label: 'contact' });
+ * ```
+ */
+export function trackUetEvent(action: string, params: Record<string, unknown> = {}): void {
+  const w = win();
+  if (!w || !w.__nextDeferredTags?.config.uet) return;
+  w.uetq = w.uetq || [];
+  (w.uetq as { push: (...a: unknown[]) => void }).push('event', action, params);
+}
+
+/** Add a custom tag to the Microsoft Clarity session (`clarity` prop), e.g. a plan or A/B variant. */
+export function clarityTag(key: string, value: string | string[]): void {
+  const w = win();
+  if (w?.clarity) w.clarity('set', key, value);
+}
+
+/** Send a Hotjar event (`hotjar` prop), for example to trigger a survey or filter recordings. */
+export function hotjarEvent(name: string): void {
+  const w = win();
+  if (w?.hj) w.hj('event', name);
 }
 
 /**
@@ -82,4 +144,20 @@ export function getConsent(opts: { version?: string } = {}): StoredConsent | nul
 /** Re-open `<ConsentBanner>` so visitors can change or withdraw consent (e.g. a footer link). */
 export function openConsentSettings(): void {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(OPEN_SETTINGS_EVENT));
+}
+
+/**
+ * The page the visitor landed on, with its ad click ids and UTM tags (first touch in this
+ * tab), or null. Send it with a form so leads carry their source.
+ */
+export function getLanding(): { url: string; params: Record<string, string>; ts: number } | null {
+  const w = win();
+  const s = w?.__nextDeferredTags?.landing;
+  if (s) return s;
+  try {
+    const raw = sessionStorage.getItem('ndt_landing');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }

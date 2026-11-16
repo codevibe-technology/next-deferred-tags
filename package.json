@@ -1,7 +1,7 @@
 {
   "name": "next-deferred-tags",
   "version": "0.2.0",
-  "description": "Load Google Tag Manager, GA4, Meta Pixel and LinkedIn Insight on the first interaction in Next.js, with cookie consent and Google Consent Mode v2 built in. Events and page views are queued, nothing is lost, and the tags stay out of your PageSpeed score.",
+  "description": "Load Google Tag Manager, GA4, Meta Pixel, LinkedIn, Microsoft Clarity and UET, TikTok and Hotjar on the first interaction in Next.js (App and Pages Router). Cookie consent, Google Consent Mode v2, a consent log and server-side events built in. Nothing is lost, and the tags stay out of your PageSpeed score.",
   "keywords": [
     "nextjs",
     "next.js",
@@ -23,7 +23,19 @@
     "cookie banner",
     "gdpr",
     "dpdp",
-    "ai referrals"
+    "ai referrals",
+    "pages router",
+    "app router",
+    "microsoft clarity",
+    "bing uet",
+    "tiktok pixel",
+    "hotjar",
+    "consent log",
+    "conversions api",
+    "measurement protocol",
+    "server-side tracking",
+    "gclid",
+    "utm"
   ],
   "license": "MIT",
   "author": "Codevibe Technology <hello@codevibe.in> (https://codevibe.in)",
@@ -42,7 +54,32 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./pages": {
+      "types": "./dist/pages/index.d.ts",
+      "import": "./dist/pages/index.js"
+    },
+    "./adapters": {
+      "types": "./dist/adapters/index.d.ts",
+      "import": "./dist/adapters/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js"
+    },
     "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "pages": [
+        "./dist/pages/index.d.ts"
+      ],
+      "adapters": [
+        "./dist/adapters/index.d.ts"
+      ],
+      "server": [
+        "./dist/server/index.d.ts"
+      ]
+    }
   },
   "files": [
     "dist",
@@ -52,11 +89,12 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json",
-    "test": "rm -rf .test-build && tsc -p tsconfig.test.json && node --test .test-build/test/*.test.js",
+    "test": "rm -rf .test-build && tsc -p tsconfig.test.json && node --test .test-build/test/*.test.js && tsc -p test/compat/tsconfig.json",
     "release": "node scripts/release.mjs",
     "prepublishOnly": "npm run build && npm test",
     "prepack": "node scripts/readme-utm.mjs npm",
-    "postpack": "node scripts/readme-utm.mjs restore"
+    "postpack": "node scripts/readme-utm.mjs restore",
+    "size": "node scripts/size.mjs"
   },
   "peerDependencies": {
     "next": ">=13.4.0",
@@ -65,6 +103,7 @@
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/react": "^19.0.0",
+    "esbuild": "^0.25.12",
     "next": "^15.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
