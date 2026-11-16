@@ -422,15 +422,19 @@ function inject(w: TagWindow, doc: DocLike) {
       add('GA4', `${c.gtagScriptUrl ?? 'https://www.googletagmanager.com/gtag/js'}?id=${encodeURIComponent(ga4[0])}`);
     });
   }
-  if (idList(c.metaPixel).length) {
-    once('meta', 'marketing', () => {
-      // Meta's pixel builds _fbc from an fbclid in the URL; the visitor may have left that page.
-      const fbclid = landing?.params.fbclid;
-      if (fbclid && doc.cookie !== undefined && !/(?:^|; )_fbc=/.test(doc.cookie)) {
+  // Meta's pixel builds _fbc from an fbclid in the URL, and the visitor may have left that
+  // page. Written for the built-in pixel and for a pixel run inside Tag Manager, which reads
+  // the same cookie, and only once marketing is allowed.
+  const fbclid = landing?.params.fbclid;
+  if (fbclid && (idList(c.metaPixel).length || idList(c.gtm).length)) {
+    once('fbc', 'marketing', () => {
+      if (doc.cookie !== undefined && !/(?:^|; )_fbc=/.test(doc.cookie)) {
         doc.cookie = `_fbc=${fbcFromFbclid(fbclid, landing!.ts)}; Max-Age=${90 * 86400}; Path=/; SameSite=Lax`;
       }
-      add('Meta Pixel', 'https://connect.facebook.net/en_US/fbevents.js');
     });
+  }
+  if (idList(c.metaPixel).length) {
+    once('meta', 'marketing', () => add('Meta Pixel', 'https://connect.facebook.net/en_US/fbevents.js'));
   }
   if (c.linkedin) once('linkedin', 'marketing', () => add('LinkedIn Insight', 'https://snap.licdn.com/li.lms-analytics/insight.min.js'));
   if (c.clarity) once('clarity', 'modeled-analytics', () => add('Microsoft Clarity', `https://www.clarity.ms/tag/${encodeURIComponent(c.clarity!)}`));
