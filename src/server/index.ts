@@ -8,6 +8,9 @@
  */
 import { CONSENT_COOKIE, type ConsentAction, type ConsentChoice } from '../consent.js';
 
+export { consentLogSchema, sheetsConsentLog, sqlConsentLog } from './consentLog.js';
+export type { ConsentLogEntry, ConsentLogStore, QueryFn, SqlDialect } from './consentLog.js';
+
 type Headers = { get(name: string): string | null };
 type RequestLike = { headers: Headers };
 

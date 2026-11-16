@@ -22,6 +22,9 @@ All notable changes to this project are documented here. The format follows [Kee
   - `sendMetaEvent()`: Meta Conversions API. Email and phone are hashed (SHA-256) before they leave the server, the IP, browser and `_fbp` / `_fbc` cookies are added, and the `eventId` you also pass to the browser pixel makes Meta count the event once. Sent only with marketing consent.
   - `sendGa4Event()`: GA4 Measurement Protocol, joined to the visitor's session through the `_ga` cookie. Sent only with analytics consent. GA4 does not de-duplicate, so use it for events the browser did not send.
   - `createConsentLogHandler()`: a Route Handler that checks each `<ConsentBanner onChoice>` record and passes it to your own `save` function. It stores no IP address.
+  - Two ready places to keep that log permanently, each with `findByVisitor(id)` to show every choice a visitor made, oldest first:
+    - `sqlConsentLog({ query, dialect })`: a table in your own Postgres, MySQL or SQLite database, through the query function of the client you already use (no new dependency). `consentLogSchema(dialect)` gives the `CREATE TABLE`.
+    - `sheetsConsentLog({ url, secret })`: rows in a Google Sheet through a small Apps Script web app (`examples/consent-log-sheet/Code.gs`). Rows are only appended, and every request needs the secret.
   - `consentFromRequest()`, `gaClientId()` and `requestCookie()` helpers.
   - Ids and secrets come from `META_PIXEL_ID`, `META_CAPI_TOKEN`, `GA4_MEASUREMENT_ID` and `GA4_API_SECRET`, or from the call. They are never sent to the browser.
 - `trackMetaEvent(name, params, { eventId })` and `newEventId()`, to send the same event from the browser and the server.
