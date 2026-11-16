@@ -8,6 +8,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - Pages Router support: `import { DeferredTags } from 'next-deferred-tags/pages'` in `pages/_app.tsx`. Page views are counted once the router is ready and on every `routeChangeComplete`; hash-only changes are not counted. The new entry point also exports `ConsentBanner` and every helper, so a Pages Router app imports everything from one place.
 - `examples/pages-router`.
+- Four more built-in tags, each queued from the first render and loaded on the same trigger as the others:
+  - `clarity`: Microsoft Clarity. With consent handling on, Clarity gets its Consent API v2 signals (`consentv2`) and, in `"advanced"` mode, loads in its cookieless no-consent mode until analytics is accepted.
+  - `uet`: Microsoft Advertising (Bing) UET. The default `ad_storage` is set to denied before the tag loads (UET otherwise assumes granted), and updated on every choice. Client-side navigations are counted by UET's own SPA tracking.
+  - `tiktok`: TikTok Pixel. Loads after marketing consent, uses the pixel's `holdConsent` / `grantConsent` / `revokeConsent`, and records a page view per navigation only while marketing is allowed.
+  - `hotjar`: Hotjar. It has no consent API, so it loads only after analytics consent.
+- `trackTikTokEvent()`, `trackUetEvent()`, `clarityTag()` and `hotjarEvent()` helpers. Like `trackMetaEvent()`, they queue until the script loads.
 
 ### Changed
 

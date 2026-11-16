@@ -42,6 +42,49 @@ export function trackMetaEvent(name: string, params?: Record<string, unknown>): 
 }
 
 /**
+ * Send a TikTok Pixel event (`tiktok` prop). Queued until the pixel loads.
+ *
+ * ```ts
+ * trackTikTokEvent('SubmitForm', { content_name: 'contact' });
+ * ```
+ */
+export function trackTikTokEvent(name: string, params?: Record<string, unknown>, options?: Record<string, unknown>): void {
+  const w = win();
+  const ttq = w?.ttq as unknown as { track?: (...a: unknown[]) => void } | undefined;
+  if (!ttq?.track) return;
+  const args: unknown[] = [name];
+  if (params || options) args.push(params ?? {});
+  if (options) args.push(options);
+  ttq.track(...args);
+}
+
+/**
+ * Send a Microsoft Advertising (UET) event (`uet` prop). Queued until the tag loads.
+ *
+ * ```ts
+ * trackUetEvent('submit_lead_form', { event_label: 'contact' });
+ * ```
+ */
+export function trackUetEvent(action: string, params: Record<string, unknown> = {}): void {
+  const w = win();
+  if (!w || !w.__nextDeferredTags?.config.uet) return;
+  w.uetq = w.uetq || [];
+  (w.uetq as { push: (...a: unknown[]) => void }).push('event', action, params);
+}
+
+/** Add a custom tag to the Microsoft Clarity session (`clarity` prop), e.g. a plan or A/B variant. */
+export function clarityTag(key: string, value: string | string[]): void {
+  const w = win();
+  if (w?.clarity) w.clarity('set', key, value);
+}
+
+/** Send a Hotjar event (`hotjar` prop), for example to trigger a survey or filter recordings. */
+export function hotjarEvent(name: string): void {
+  const w = win();
+  if (w?.hj) w.hj('event', name);
+}
+
+/**
  * Load the tags now instead of waiting for an interaction, for example right after
  * the visitor accepts cookies. Does nothing if they are already loaded or if no
  * `<DeferredTags>` has mounted yet.

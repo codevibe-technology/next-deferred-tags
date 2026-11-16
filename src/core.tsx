@@ -132,7 +132,8 @@ function usePageView(prep: Prep, eventName: string, aiReferrals: boolean) {
 }
 
 /**
- * Loads Google Tag Manager, GA4, the Meta Pixel, the LinkedIn Insight Tag and any other
+ * Loads Google Tag Manager, GA4, the Meta Pixel, LinkedIn, Microsoft Clarity and UET,
+ * TikTok, Hotjar and any other
  * scripts on the visitor's first interaction or a few seconds after the page loads,
  * whichever comes first. Events and page views are queued until then, so nothing is lost.
  *
@@ -152,6 +153,10 @@ export function DeferredTagsCore({
   ga4,
   metaPixel,
   linkedin,
+  clarity,
+  uet,
+  tiktok,
+  hotjar,
   scripts,
   nonce,
   consent,
@@ -159,7 +164,7 @@ export function DeferredTagsCore({
   consentVersion = '1',
   aiReferrals = true,
 }: DeferredTagsProps & { RouteTracker: ComponentType<RouteTrackerProps> }) {
-  const config: TagConfig = { gtm, ga4, metaPixel, linkedin, scripts, nonce };
+  const config: TagConfig = { gtm, ga4, metaPixel, linkedin, clarity, uet, tiktok, hotjar, scripts, nonce };
   const prep: Prep = { config, consent, consentMode, consentVersion };
   const onLoadRef = useRef(onLoad);
   onLoadRef.current = onLoad;
@@ -201,7 +206,7 @@ export function DeferredTagsCore({
     return scheduled.cancel;
     // The ids, triggers and scripts are compared by value through the keys below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gtm, ga4, metaPixel, linkedin, nonce, sKey, triggerKey, delay, enabled]);
+  }, [gtm, ga4, metaPixel, linkedin, clarity, uet, tiktok, hotjar, nonce, sKey, triggerKey, delay, enabled]);
 
   // Without page-view tracking the AI-referral event still needs a place to run.
   useEffect(() => {
