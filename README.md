@@ -234,7 +234,7 @@ export const CookieSettingsLink = () => <button onClick={openConsentSettings}>Co
 | `country`, `consentRegions` | | See [Regions](#regions) |
 | `showConsentId` | `true` | After a choice, the settings view shows "Your consent ID", which visitors can quote when asking what they agreed to |
 | `showTools` | `false` | Name the tools behind each category ("Used by: Google, Microsoft Clarity") |
-| `poweredBy` | `true` | A small "Powered by Codevibe" link at the bottom of the settings view (never the first view). `false` removes it completely |
+| `poweredBy` | `true` | A small "Powered by Codevibe · Free on npm" line at the bottom of the settings view (never the first view), so other developers can find the package. `false` removes it completely |
 | `theme` | `'dark'` | `'dark'` or `'light'`; colours can also be set through the `--ndt-*` CSS variables |
 | `position` | `'bottom-left'` | `'bottom-left'`, `'bottom-right'` or `'bottom'` |
 | `unstyled` | `false` | Drop the built-in styles and style the `ndt-consent*` class names yourself |

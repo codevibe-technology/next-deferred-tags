@@ -26,6 +26,8 @@ export interface ConsentBannerText {
   usedBy?: string;
   /** Label before the visitor's consent ID in the settings view. Optional (added in 0.3). */
   consentId?: string;
+  /** Text of the npm link in the credit line, e.g. "Free on npm". Optional (added in 0.3). */
+  openSource?: string;
 }
 
 export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
@@ -46,6 +48,7 @@ export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
   poweredBy: 'Powered by',
   usedBy: 'Used by',
   consentId: 'Your consent ID',
+  openSource: 'Free on npm',
 };
 
 /** Hindi texts. Pass as `text={CONSENT_TEXT_HI}`. */
@@ -67,9 +70,19 @@ export const CONSENT_TEXT_HI: ConsentBannerText = {
   poweredBy: 'Powered by',
   usedBy: 'इस्तेमाल करने वाले',
   consentId: 'आपकी सहमति ID',
+  openSource: 'npm पर मुफ़्त',
 };
 
-/** The Codevibe mark, 12px, in the current text colour's accent. */
+/** The npm logo, 11px. */
+function NpmMark() {
+  return (
+    <svg aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" style={{ display: 'inline-block', verticalAlign: '-1px', marginRight: 4 }}>
+      <path fill="#CB3837" d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z" />
+    </svg>
+  );
+}
+
+/** The Codevibe mark, 11px. */
 function CodevibeMark() {
   return (
     <svg aria-hidden="true" width="11" height="11" viewBox="0 0 512 512" style={{ display: 'inline-block', verticalAlign: '-1px', marginRight: 4 }}>
@@ -104,6 +117,9 @@ function toolsByCategory(): Record<'analytics' | 'marketing', string[]> {
   if (c.uet) out.marketing.push('Microsoft Advertising');
   return out;
 }
+
+/** The npm package page, linked from the credit line. */
+export const NPM_URL = 'https://www.npmjs.com/package/next-deferred-tags';
 
 /** Where the settings view credit links to. */
 export const POWERED_BY_URL =
@@ -190,7 +206,7 @@ export function ConsentBanner({
 }: ConsentBannerProps) {
   // Texts written for 0.2 lack the newer keys: fall back to the English ones.
   const t = { ...DEFAULT_CONSENT_TEXT, ...text } as Required<ConsentBannerText>;
-  for (const k of ['poweredBy', 'usedBy', 'consentId'] as const) if (!t[k]) t[k] = DEFAULT_CONSENT_TEXT[k]!;
+  for (const k of ['poweredBy', 'usedBy', 'consentId', 'openSource'] as const) if (!t[k]) t[k] = DEFAULT_CONSENT_TEXT[k]!;
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState(false);
   const [choice, setChoice] = useState<ConsentChoice>({ analytics: false, marketing: false });
@@ -367,6 +383,11 @@ export function ConsentBanner({
           <a href={POWERED_BY_URL} target="_blank" rel="noopener" style={st({ color: 'inherit', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' })}>
             <CodevibeMark />
             Codevibe
+          </a>
+          <span aria-hidden="true" style={st({ margin: '0 6px' })}>·</span>
+          <a href={NPM_URL} target="_blank" rel="noopener" style={st({ color: 'inherit', textDecoration: 'none', whiteSpace: 'nowrap' })}>
+            <NpmMark />
+            {t.openSource}
           </a>
         </p>
       )}

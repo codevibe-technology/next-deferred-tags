@@ -42,7 +42,7 @@ You can also read it on the [next-deferred-tags changelog page](https://codevibe
 - `webVitals`: pushes LCP, INP, CLS, FCP and TTFB to the dataLayer as `web_vitals` events.
 - `<ConsentGate category="marketing">`: holds back an embed that sets cookies (YouTube, Maps, social posts) until the visitor allows its category, with an "Allow and show" placeholder. Outside the consent regions it renders straight away.
 - CI checks the size of the browser code (`npm run size`) and builds the Pages Router example. With everything above, `<DeferredTags>` alone is 5.9 KB minified and gzipped (3.1 KB in 0.2.0), and with `<ConsentBanner>` 8.7 KB (5.2 KB).
-- `<ConsentBanner>` shows a small "Powered by Codevibe" link, with the Codevibe mark, at the bottom of its settings view (the one with the category switches), never in the first view. It links to the next-deferred-tags page on codevibe.in and opens in a new tab. On by default; `poweredBy={false}` removes it completely, and `text.poweredBy` translates the words before "Codevibe". The link carries the class `ndt-powered-by` for `unstyled` banners.
+- `<ConsentBanner>` shows a small "Powered by Codevibe · Free on npm" line, with the Codevibe mark and the npm logo (the npm part links to the package on npmjs.com), at the bottom of its settings view (the one with the category switches), never in the first view. It links to the next-deferred-tags page on codevibe.in and opens in a new tab. On by default; `poweredBy={false}` removes it completely, and `text.poweredBy` translates the words before "Codevibe". The link carries the class `ndt-powered-by` for `unstyled` banners.
 
 ### Changed
 
