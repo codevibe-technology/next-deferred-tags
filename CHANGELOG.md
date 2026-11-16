@@ -6,6 +6,8 @@ You can also read it on the [next-deferred-tags changelog page](https://codevibe
 
 ## Unreleased
 
+## [0.3.0] - 2026-11-16
+
 ### Added
 
 - Pages Router support: `import { DeferredTags } from 'next-deferred-tags/pages'` in `pages/_app.tsx`. Page views are counted once the router is ready and on every `routeChangeComplete`; hash-only changes are not counted. The new entry point also exports `ConsentBanner` and every helper, so a Pages Router app imports everything from one place.

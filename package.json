@@ -1,6 +1,6 @@
 {
   "name": "next-deferred-tags",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Load Google Tag Manager, GA4, Meta Pixel, LinkedIn, Microsoft Clarity and UET, TikTok and Hotjar on the first interaction in Next.js (App and Pages Router). Cookie consent, Google Consent Mode v2, a consent log and server-side events built in. Nothing is lost, and the tags stay out of your PageSpeed score.",
   "keywords": [
     "nextjs",
