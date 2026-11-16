@@ -6,6 +6,11 @@ You can also read it on the [next-deferred-tags changelog page](https://codevibe
 
 ## Unreleased
 
+### Changed
+
+- README cover image (`.github/assets/banner.png`, also shown on npm) updated for 0.3: all eight built-in tags, the consent log, and App and Pages Router.
+- New "What's inside" image at the top of the Features section (`.github/assets/whats-inside.png`): loading after the page is ready, the eight tags, consent, the consent log, ad click handover and server-side events.
+
 ## [0.3.0] - 2026-11-16
 
 ### Added
