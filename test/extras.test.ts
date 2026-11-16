@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { attributionParams, captureLanding } from '../src/landing.js';
-import { configureRuntime, getState, installStubs, loadTags, trackPageView, type DocLike, type TagWindow } from '../src/tags.js';
+import { configureRuntime, getState, initConsent, installStubs, updateConsent, loadTags, trackPageView, type DocLike, type TagWindow } from '../src/tags.js';
 import { createFlushHandler, type FlushedEvents } from '../src/server/index.js';
 
 type El = { src: string; onload?: (() => void) | null; onerror?: (() => void) | null };
@@ -54,6 +54,18 @@ test('Meta gets an _fbc cookie built from the landing fbclid, unless one exists'
   installStubs(w2, { metaPixel: '1' });
   loadTags(w2, d2.doc);
   assert.equal(d2.doc.cookie, '_fbc=fb.1.5.OLD');
+});
+
+test('a Meta pixel inside Tag Manager also gets _fbc, once marketing is allowed', () => {
+  const w: TagWindow = {};
+  configureRuntime(w, { landing: { url: 'https://x.test/?fbclid=F2', params: { fbclid: 'F2' }, ts: 1700000000000 } });
+  const { doc } = fakeDoc('');
+  installStubs(w, { gtm: 'GTM-A' });
+  initConsent(w, { analytics: false, marketing: false });
+  loadTags(w, doc);
+  assert.equal(doc.cookie, '');
+  updateConsent(w, doc, { analytics: true, marketing: true });
+  assert.match(doc.cookie!, /^_fbc=fb\.1\.1700000000000\.F2;/);
 });
 
 test('several ids per tag, GTM environments and first-party script URLs', () => {

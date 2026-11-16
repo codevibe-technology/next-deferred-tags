@@ -158,9 +158,11 @@ Every helper works before the tags load: the events wait in the queue. There are
 
 - the first page view carries `landing_page` and the ids, for Tag Manager variables;
 - GA4 without Tag Manager gets the landing URL as `page_location`;
-- the Meta Pixel gets an `_fbc` cookie built from the `fbclid`.
+- the Meta Pixel gets an `_fbc` cookie built from the `fbclid`, after marketing consent. This also works for a Meta Pixel you run inside Tag Manager, which reads the same cookie.
 
 `getLanding()` returns them too, so you can send each lead's source with the form.
+
+One limit: Google Ads' Conversion Linker in Tag Manager reads `gclid` only from the current URL. If the visitor moved to another page before the tags loaded, that click is not stored in its cookie. Send the `gclid` from `getLanding()` with the lead and upload it as an offline conversion if those clicks matter to you.
 
 ## Cookie consent
 
