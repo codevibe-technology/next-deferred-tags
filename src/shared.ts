@@ -20,3 +20,4 @@ export { DEFAULT_DELAY_MS, DEFAULT_TRIGGERS, scheduleOnInteraction } from './sch
 export type { ScheduleOptions, Scheduled } from './schedule.js';
 export { initConsent, installStubs, loadTags, trackPageView, updateConsent } from './tags.js';
 export type { ConsentMode, ScriptSpec, TagConfig } from './tags.js';
+export { CONSENT_REGIONS, COUNTRY_COOKIE, COUNTRY_HEADERS, consentRequired, countryFromHeaders, readCountry } from './region.js';

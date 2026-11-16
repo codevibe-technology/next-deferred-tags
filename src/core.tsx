@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ComponentType } from 'react';
 import { CONSENT_EVENT, detectAiReferral, readConsent, type ConsentChoice, type StoredConsent } from './consent.js';
+import { CONSENT_REGIONS, consentRequired, readCountry } from './region.js';
 import { DEFAULT_DELAY_MS, DEFAULT_TRIGGERS, scheduleOnInteraction } from './schedule.js';
 import {
   getState,
@@ -60,6 +61,15 @@ export interface DeferredTagsProps extends TagConfig {
   /** With `consent="stored"`: bump to ask everyone again. Default `'1'`. */
   consentVersion?: string;
   /**
+   * The visitor's country (ISO code, e.g. from your host's `x-vercel-ip-country` or
+   * `cf-ipcountry` header). Without it, the `ndt_country` cookie is used if your
+   * middleware sets one. Outside `consentRegions`, tags run as if accepted until the
+   * visitor chooses otherwise. Unknown country: consent is asked.
+   */
+  country?: string;
+  /** Countries where consent is asked. Default: EU/EEA, UK, Switzerland, India. `'all'` asks everyone. */
+  consentRegions?: readonly string[] | 'all';
+  /**
    * Push `{ event: 'ai_referral', ai_assistant, ai_source }` once per visit when the
    * visitor came from ChatGPT, Perplexity, Claude, Gemini, Copilot and others. Default true.
    */
@@ -77,10 +87,14 @@ function toChoice(s: StoredConsent | null): ConsentChoice | null {
   return s ? { analytics: s.analytics, marketing: s.marketing } : null;
 }
 
-function resolveConsent(setting: ConsentSetting | undefined, version: string): ConsentChoice | null | undefined {
+const GRANTED: ConsentChoice = { analytics: true, marketing: true };
+
+function resolveConsent(setting: ConsentSetting | undefined, version: string, country: string | undefined, regions: readonly string[] | 'all'): ConsentChoice | null | undefined {
   if (setting === undefined) return undefined;
-  if (setting === 'stored') return toChoice(readConsent(document, version));
-  return setting;
+  const choice = setting === 'stored' ? toChoice(readConsent(document, version)) : setting;
+  // No choice yet: outside the consent regions (known country only), start granted.
+  if (choice === null && !consentRequired(country ?? readCountry(document), regions)) return GRANTED;
+  return choice;
 }
 
 interface Prep {
@@ -88,11 +102,13 @@ interface Prep {
   consent?: ConsentSetting;
   consentMode: ConsentMode;
   consentVersion: string;
+  country?: string;
+  consentRegions: readonly string[] | 'all';
 }
 
 /** Consent defaults first, then the vendor queues. Safe to call from every effect. */
 function prepare(w: TagWindow, p: Prep) {
-  const c = resolveConsent(p.consent, p.consentVersion);
+  const c = resolveConsent(p.consent, p.consentVersion, p.country, p.consentRegions);
   if (c !== undefined) initConsent(w, c, p.consentMode);
   installStubs(w, p.config);
 }
@@ -162,10 +178,12 @@ export function DeferredTagsCore({
   consent,
   consentMode = 'advanced',
   consentVersion = '1',
+  country,
+  consentRegions = CONSENT_REGIONS,
   aiReferrals = true,
 }: DeferredTagsProps & { RouteTracker: ComponentType<RouteTrackerProps> }) {
   const config: TagConfig = { gtm, ga4, metaPixel, linkedin, clarity, uet, tiktok, hotjar, scripts, nonce };
-  const prep: Prep = { config, consent, consentMode, consentVersion };
+  const prep: Prep = { config, consent, consentMode, consentVersion, country, consentRegions };
   const onLoadRef = useRef(onLoad);
   onLoadRef.current = onLoad;
   const triggerKey = triggers.join(',');

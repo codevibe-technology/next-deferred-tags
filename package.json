@@ -46,6 +46,10 @@
       "types": "./dist/pages/index.d.ts",
       "import": "./dist/pages/index.js"
     },
+    "./adapters": {
+      "types": "./dist/adapters/index.d.ts",
+      "import": "./dist/adapters/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [

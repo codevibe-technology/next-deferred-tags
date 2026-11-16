@@ -3,6 +3,7 @@
 import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react';
 import { OPEN_SETTINGS_EVENT, readConsent, type ConsentAction, type ConsentChoice, type StoredConsent } from './consent.js';
 import { setConsent } from './events.js';
+import { CONSENT_REGIONS, consentRequired, readCountry } from './region.js';
 
 export interface ConsentBannerText {
   title: string;
@@ -26,43 +27,59 @@ export interface ConsentBannerText {
 }
 
 export const DEFAULT_CONSENT_TEXT: ConsentBannerText = {
-  title: 'Help us make this site better',
-  body: 'Some cookies keep this site working. With your OK, we also use cookies to see which pages help people and which confuse them, and to show you ads that fit what you were looking at instead of random ones. You choose, and you can change it any time.',
+  title: 'Cookie preferences',
+  body: 'We use cookies to keep this site working, to make it better and to show you relevant ads. You can choose which ones to allow, and change your choice at any time.',
   policy: 'Privacy policy',
   acceptAll: 'Accept all',
   rejectAll: 'Reject all',
-  choose: 'Choose',
-  save: 'Save choices',
-  necessary: 'Essential',
-  necessaryDescription: 'Keeps the site secure and remembers this choice.',
-  analytics: 'Site improvement',
-  analyticsDescription: 'Counts visits and shows which pages people use and where they get stuck, so we can fix what is confusing and keep the site fast.',
-  marketing: 'Relevant ads',
-  marketingDescription: 'Shows you ads that fit what you looked at here instead of random ones, and tells us which ads brought you here, so we stop paying for ads nobody wants.',
-  alwaysOn: 'Always on',
+  choose: 'Manage preferences',
+  save: 'Confirm my choices',
+  necessary: 'Required cookies',
+  necessaryDescription: 'Needed for the site to work. Some examples include: security cookies and the cookie that remembers this choice.',
+  analytics: 'Functional cookies',
+  analyticsDescription: 'Help the site work better and improve our services. Some examples include: cookies used to understand site traffic, which pages are useful and where the site can be faster.',
+  marketing: 'Advertising cookies',
+  marketingDescription: 'Help show you ads that match your interests and measure how our ads perform. Some examples include: cookies used for remarketing and to measure ad results.',
+  alwaysOn: 'Always active',
   poweredBy: 'Powered by',
   usedBy: 'Used by',
 };
 
 /** Hindi texts. Pass as `text={CONSENT_TEXT_HI}`. */
 export const CONSENT_TEXT_HI: ConsentBannerText = {
-  title: 'इस साइट को बेहतर बनाने में हमारी मदद करें',
-  body: 'कुछ कुकीज़ इस साइट को चलाने के लिए ज़रूरी हैं। आपकी अनुमति से हम कुकीज़ का इस्तेमाल यह समझने के लिए भी करते हैं कि कौन से पेज काम के हैं और कहाँ लोग अटकते हैं, और आपको वही विज्ञापन दिखाने के लिए जो आपकी पसंद से मेल खाते हैं। फ़ैसला आपका है, और आप इसे कभी भी बदल सकते हैं।',
+  title: 'कुकी प्राथमिकताएँ',
+  body: 'हम कुकीज़ का इस्तेमाल इस साइट को चलाने, इसे बेहतर बनाने और आपको काम के विज्ञापन दिखाने के लिए करते हैं। आप चुन सकते हैं कि किन्हें अनुमति देनी है, और अपना चुनाव कभी भी बदल सकते हैं।',
   policy: 'गोपनीयता नीति',
   acceptAll: 'सभी स्वीकार करें',
   rejectAll: 'सभी अस्वीकार करें',
-  choose: 'चुनें',
-  save: 'चुनाव सेव करें',
-  necessary: 'ज़रूरी',
-  necessaryDescription: 'साइट को सुरक्षित रखती हैं और आपका यह चुनाव याद रखती हैं।',
-  analytics: 'साइट सुधार',
-  analyticsDescription: 'विज़िट गिनती हैं और दिखाती हैं कि लोग कौन से पेज इस्तेमाल करते हैं और कहाँ अटकते हैं, ताकि हम उलझन वाली चीज़ें ठीक कर सकें और साइट तेज़ रख सकें।',
-  marketing: 'आपके काम के विज्ञापन',
-  marketingDescription: 'बेतरतीब विज्ञापनों की जगह वे विज्ञापन दिखाती हैं जो आपकी पसंद से मेल खाते हैं, और बताती हैं कि आप किस विज्ञापन से यहाँ आए।',
-  alwaysOn: 'हमेशा चालू',
+  choose: 'प्राथमिकताएँ चुनें',
+  save: 'मेरा चुनाव सेव करें',
+  necessary: 'ज़रूरी कुकीज़',
+  necessaryDescription: 'साइट के काम करने के लिए ज़रूरी। कुछ उदाहरण: सुरक्षा कुकीज़ और वह कुकी जो आपका यह चुनाव याद रखती है।',
+  analytics: 'फ़ंक्शनल कुकीज़',
+  analyticsDescription: 'साइट को बेहतर काम करने और हमारी सेवाएँ सुधारने में मदद करती हैं। कुछ उदाहरण: साइट ट्रैफ़िक समझने वाली कुकीज़, कौन से पेज काम के हैं और साइट कहाँ तेज़ हो सकती है।',
+  marketing: 'विज्ञापन कुकीज़',
+  marketingDescription: 'आपकी रुचि से मेल खाते विज्ञापन दिखाने और हमारे विज्ञापनों का असर मापने में मदद करती हैं। कुछ उदाहरण: रीमार्केटिंग और विज्ञापन के नतीजे मापने वाली कुकीज़।',
+  alwaysOn: 'हमेशा सक्रिय',
   poweredBy: 'Powered by',
   usedBy: 'इस्तेमाल करने वाले',
 };
+
+/** The Codevibe mark, 12px, in the current text colour's accent. */
+function CodevibeMark() {
+  return (
+    <svg aria-hidden="true" width="11" height="11" viewBox="0 0 512 512" style={{ display: 'inline-block', verticalAlign: '-1px', marginRight: 4 }}>
+      <g fill="#1B6AE0">
+        <rect x="255" y="10" width="235" height="49" />
+        <rect x="441" y="10" width="49" height="236" />
+        <rect x="186" y="80" width="49" height="421" />
+        <rect x="0" y="266" width="421" height="49" />
+        <rect x="186" y="290.5" width="49" height="210.5" transform="rotate(45 210.5 290.5)" />
+        <rect x="186" y="80" width="49" height="421" transform="rotate(-45 210.5 290.5)" />
+      </g>
+    </svg>
+  );
+}
 
 /** Which configured tools each category covers, read from <DeferredTags>, for the settings view. */
 function toolsByCategory(): Record<'analytics' | 'marketing', string[]> {
@@ -108,9 +125,17 @@ export interface ConsentBannerProps {
   position?: 'bottom-left' | 'bottom-right' | 'bottom';
   /**
    * In the settings view, name the tools each category turns on (read from
-   * `<DeferredTags>`, e.g. "Used by: Google Analytics, Microsoft Clarity"). Default `true`.
+   * `<DeferredTags>`, e.g. "Used by: Google Analytics, Microsoft Clarity"). Default `false`.
    */
   showTools?: boolean;
+  /**
+   * The visitor's country. Outside `consentRegions` the banner does not open by itself
+   * (a "Cookie settings" link still opens it). Falls back to the `ndt_country` cookie;
+   * unknown country: the banner opens. Pass the same values as to `<DeferredTags>`.
+   */
+  country?: string;
+  /** Countries where the banner opens by itself. Default: EU/EEA, UK, Switzerland, India. */
+  consentRegions?: readonly string[] | 'all';
   /** Drop the built-in styles and style the `ndt-consent*` class names yourself. */
   unstyled?: boolean;
   /**
@@ -147,7 +172,9 @@ export function ConsentBanner({
   position = 'bottom-left',
   unstyled = false,
   poweredBy = true,
-  showTools = true,
+  showTools = false,
+  country,
+  consentRegions = CONSENT_REGIONS,
   className,
 }: ConsentBannerProps) {
   const t = { ...DEFAULT_CONSENT_TEXT, ...text };
@@ -157,7 +184,7 @@ export function ConsentBanner({
   const titleId = useId();
 
   useEffect(() => {
-    if (!readConsent(document, version)) setOpen(true);
+    if (!readConsent(document, version) && consentRequired(country ?? readCountry(document), consentRegions)) setOpen(true);
     const reopen = () => {
       const c = readConsent(document, version);
       setChoice({ analytics: !!c?.analytics, marketing: !!c?.marketing });
@@ -166,7 +193,8 @@ export function ConsentBanner({
     };
     window.addEventListener(OPEN_SETTINGS_EVENT, reopen);
     return () => window.removeEventListener(OPEN_SETTINGS_EVENT, reopen);
-  }, [version]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version, country]);
 
   if (!open) return null;
 
@@ -315,7 +343,8 @@ export function ConsentBanner({
       {detail && poweredBy && (
         <p className="ndt-powered-by" style={st({ margin: '12px 0 0', fontSize: 11.5, color: 'var(--ndt-muted)', textAlign: 'center' })}>
           {t.poweredBy}{' '}
-          <a href={POWERED_BY_URL} target="_blank" rel="noopener" style={st({ color: 'inherit', textDecoration: 'underline' })}>
+          <a href={POWERED_BY_URL} target="_blank" rel="noopener" style={st({ color: 'inherit', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' })}>
+            <CodevibeMark />
             Codevibe
           </a>
         </p>
